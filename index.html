@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body>
+    <div class="scroll">
+      <div class="scrollBox first">
+        <div class="boxList">
+          <div class="boxListItem item1">
+            <span>Datapunkter:</span> <input type="number" id="input" max="9999" min="0"><div class="download" onclick="download()">&#10515;</div>
+          </div>
+          <div class="boxListItem item2">
+            <span class="name">Graf 1</span><span class="nameChange">&#128393;</span>
+          </div>
+          <div class="boxListItem item3">
+            <span class="name">Graf 2</span><span class="nameChange">&#128393;</span>
+          </div>
+          <div class="boxListItem item4">
+            <span class="name">Graf 3</span><span class="nameChange">&#128393;</span>
+          </div>
+        </div>
+      </div>
+      <div class="scrollBox">
+        <div class="graphList">
+          <span class="graphListItem g1 graphToggle"><div class="item2"></div><span class="name">Graf 1</span></span>
+          <span class="graphListItem g2 graphToggle"><div class="item3"></div><span class="name">Graf 2</span></span>
+          <span class="graphListItem g3 graphToggle"><div class="item4"></div><span class="name">Graf 3</span></span>
+        </div>
+        <div class="graphBox">
+          <canvas id="graphC"></canvas>
+        </div>
+      </div>
+      <div class="scrollBox">
+        <div class="graphList">
+          <span class="graphListItem g1 monitorSelector"><div class="item2"></div><span class="name">Graf 1</span></span>
+          <span class="graphListItem g2 monitorSelector grey"><div class="item3"></div><span class="name">Graf 2</span></span>
+          <span class="graphListItem g3 monitorSelector grey"><div class="item4"></div><span class="name">Graf 3</span></span>
+        </div>
+        <div class="monitorBox" id="monitor">
+        </div>
+      </div>
+      <div class="scrollBox last">
+        <img src="https://cdn.discordapp.com/attachments/959778939495133224/963051580129681418/Svart_tekst_1.png" alt="">
+      </div>
+    </div>
+    <div class="keypad">
+      <div class="keypadRow small">
+        <div class="key keySmall">
+
+        </div>
+        <div class="key keySmall">
+
+        </div>
+        <div class="key keySmall">
+
+        </div>
+      </div>
+      <div class="keypadRow big">
+        <div class="key keyBig">
+          &#8598;
+        </div>
+        <div class="key keyBig">
+          &uarr;
+        </div>
+        <div class="key keyBig">
+          &#8599;
+        </div>
+      </div>
+      <div class="keypadRow big">
+        <div class="key keyBig">
+          &larr;
+        </div>
+        <div class="key keyBig">
+          &darr;
+        </div>
+        <div class="key keyBig">
+          &rarr;
+        </div>
+      </div>
+    </div>
+    <style media="screen">
+      :root{
+        --dark: rgba(10,34,55);
+        --light: #FFFFFF;
+        --UIblue: rgba(40,113,177);
+        --UIgrey: rgba(238,238,238);
+        --UIdarkgrey: rgba(196,196,196);
+        --UIclick: #d78e4e;
+
+        --graph1: rgba(64,72,112);
+        --graph2: rgba(121,133,198);
+        --graph3: rgba(195,204,251);
+      }
+      body{
+        margin:0;
+        padding: 1rem;
+        display: flex;
+        height: 100vh;
+        flex-direction: column;
+        box-sizing:border-box;
+        justify-content: space-between;
+        padding-top: 3rem;
+        font-family:
+      }
+
+      .scroll{
+        overflow-x: scroll;
+        height: 60%;
+        display: flex;
+        flex-direction: row;
+        padding: 0.5rem;
+        margin: 0 0 2rem 0;
+        scroll-snap-type: x mandatory;
+      }
+      .scrollBox{
+        flex: 0 0 auto;
+        width: 100%;
+        height: 100%;
+        background-color: var(--UIgrey);
+        border-radius: 1rem;
+        margin: 0 30rem 0 30rem;
+        scroll-snap-align: start;
+      }
+
+      .first{
+        background-color: var(--UIblue);
+      }
+
+      .last{
+        background-color: var(--light);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .last img{
+        width: 100%;
+      }
+
+      .boxList{
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding: 1rem;
+        box-sizing: border-box;
+        color: var(--light);
+      }
+
+      .boxListItem{
+        flex: 1 1 0;
+        width: 100%;
+        background-color: red;
+        border-radius: 1rem;
+        margin: 1rem 0 1rem 0;
+        padding: 0 2rem 0 2rem;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 5rem;
+      }
+
+      .boxListItem input{
+        height: 5rem;
+        width: 12rem;
+        border-radius: 1rem;
+        font-size: 5rem;
+      }
+
+      .download{
+        background-color: var(--dark);
+        width:6rem;
+        text-align: center;
+        border-radius: 1rem;
+      }
+
+      .item1{
+        background-color: inherit;
+      }
+
+      .item2{
+        background-color: var(--graph1);
+      }
+      .item3{
+        background-color: var(--graph2);
+      }
+      .item4{
+        background-color: var(--graph3);
+      }
+
+      .graphList{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        height: 15%;
+        font-size: 5rem;
+      }
+
+      .graphListItem{
+        height: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        flex-grow:1;
+        align-items: center;
+      }
+
+      .graphListItem div{
+        width: 2rem;
+        height: 2rem;
+        margin: 1rem;
+      }
+
+      .g1{
+        color: var(--graph1);
+      }
+
+      .g2{
+        color: var(--graph2);
+      }
+
+      .g3{
+        color: var(--graph3);
+      }
+
+      .graphBox{
+        width: 100%;
+        height: 85%;
+      }
+
+      .graphBox canvas{
+        width: 100%;
+        height: 100%;
+      }
+
+      .monitorBox{
+        width: 100%;
+        height: 85%;
+        font-family: monospace;
+        display: flex;
+        flex-direction: column;
+        font-size: 5rem;
+        padding: 2rem;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      .keypad{
+        box-sizing: border-box;
+        width:100%;
+        height:40%;
+        display: flex;
+        flex-direction: column;
+        color: var(--light);
+      }
+      .keypadRow{
+        display: flex;
+        flex-direction: row;
+        width: 100%;
+      }
+
+      .key:active{
+        background-color: var(--UIclick);
+        color: var(--dark);
+      }
+
+      .big{
+        flex-grow: 1.5;
+      }
+
+      .small{
+        flex-grow: 1;
+      }
+
+      .keypadRow div{
+        flex: 1 1 0;
+        box-sizing: border-box;
+        border-radius: 1rem;
+        margin:0.2rem;
+        font-size: 6rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .keyBig{
+        background-color: var(--dark);
+        display: flex;
+      }
+      .keySmall{
+        background-color: var(--UIblue);
+      }
+
+      .grey{
+        color: var(--UIdarkgrey);
+      }
+      .grey div{
+        background-color: var(--UIdarkgrey);
+      }
+    </style>
+    <script type="text/javascript">
+      var graphdata1 = [];
+      var graphdata2 = [];
+      var graphdata3 = [];
+      var graphx = [];
+      var data = [graphdata1,graphdata2,graphdata3];
+      var colors = ["#335588","#66AACC","#DDDDFF"];
+      var names = ["Graf 1", "Graf 2", "Graf 3"];
+      var graphToggle = [true, true, true];
+      var graphWidth = 9999;
+      var t=0;
+      var monitorDidgitLength = 10;
+
+      var selectedMonitor = 0;
+      var monitorLineCount = 6;
+
+      for(var i=0;i<graphWidth;i++){
+        graphdata1.push(0);
+        graphdata2.push(0);
+        graphdata3.push(0);
+      }
+      graphWidth=300;
+
+      var c = document.getElementById("graphC");
+      var ctx = c.getContext("2d");
+      ctx.lineWidth = 1.4
+
+      function updateGraph(){
+        ctx.clearRect(0,0,c.width,c.height);
+        for(i=0;i<3;i++){
+          if(graphToggle[i]){
+            ctx.beginPath();
+            ctx.moveTo(0,c.height/2);
+            ctx.strokeStyle=colors[i];
+            for(j=0;j<graphWidth;j++){
+              ctx.lineTo(c.width*j/graphWidth,c.height*data[i][j+9999+t-graphWidth]/-2+c.height/2);
+            }
+            ctx.stroke();
+            ctx.closePath();
+          }
+        }
+      }
+
+      function updateMonitor(){
+        var monitor = document.getElementById("monitor");
+        monitor.innerHTML="";
+        for(i=0;i<monitorLineCount;i++){
+          str = data[selectedMonitor][data[selectedMonitor].length-(monitorLineCount-i)]+"";
+          str = str.slice(0,monitorDidgitLength);
+          monitor.innerHTML+="<span>"+str+"</span>";
+        }
+      }
+
+
+      updateMonitor();
+      updateGraph();
+      setInterval(function(){
+        graphdata1.push((0.5-Math.random())/50);
+        graphdata2.push(graphdata2[graphdata2.length-1]+graphdata1[graphdata2.length-1]);
+        graphdata3.push(graphdata1[graphdata2.length-1]-graphdata1[graphdata3.length-2]);
+        updateGraph();
+        updateMonitor();
+        t++;
+      },200);
+
+      function download() {
+        var filename = "data.csv";
+        var textInput = "";
+        for(j=0;j<t;j++){
+          textInput+=data[0][j+9999]+","
+          textInput+=data[1][j+9999]+","
+          textInput+=data[2][j+9999]
+          textInput+="\n"
+        }
+        var element = document.createElement('a');
+        element.setAttribute('href','data:text/plain;charset=utf-8, ' + encodeURIComponent(textInput));
+        element.setAttribute('download', filename);
+        document.body.appendChild(element);
+        element.click();
+      }
+
+      for(let i=0;i<document.getElementsByClassName("monitorSelector").length;i++){
+        document.getElementsByClassName("monitorSelector")[i].onclick = function(){
+          selectedMonitor = i;
+          for(selector of document.getElementsByClassName("monitorSelector")){
+            selector.classList.add("grey");
+          }
+          document.getElementsByClassName("monitorSelector")[i].classList.remove("grey");
+        }
+      }
+
+      for(let i=0;i<document.getElementsByClassName("key").length;i++){
+        document.getElementsByClassName("key")[i].onclick = function(){
+          console.log(i);
+        }
+      }
+
+      for(let i=0;i<document.getElementsByClassName("nameChange").length;i++){
+        document.getElementsByClassName("nameChange")[i].onclick = function(){
+          names[i] = prompt("Skriv inn nytt navn: ", names[i]);
+          for(j=0;j<document.getElementsByClassName("name").length;j++){
+            if((j%3)==i){
+              document.getElementsByClassName("name")[j].innerHTML=names[i];
+            }
+          }
+        }
+      }
+
+      for(let i=0;i<document.getElementsByClassName("graphToggle").length;i++){
+        document.getElementsByClassName("graphToggle")[i].onclick=function(){
+          graphToggle[i] = !graphToggle[i];
+          if(graphToggle[i]){
+            document.getElementsByClassName("graphToggle")[i].classList.remove("grey");
+          }else{
+            document.getElementsByClassName("graphToggle")[i].classList.add("grey");
+          }
+        }
+      }
+
+      document.getElementById("input").addEventListener("input", function(){
+        document.getElementById("input").value = document.getElementById("input").value.slice(0,4);
+      });
+
+      document.addEventListener("keydown",function(e){
+        if(e.key=="Enter"){
+          graphWidth = parseInt(document.getElementById("input").value);
+          document.getElementById("input").value="";
+        }
+      });
+
+    </script>
+  </body>
+</html>
