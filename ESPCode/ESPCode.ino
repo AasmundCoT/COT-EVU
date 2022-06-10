@@ -2,7 +2,7 @@
 
 Car car("iPhone", "testPassord");
 
-void setup(){
+void setup() {
     car.initCar();
 }
 
