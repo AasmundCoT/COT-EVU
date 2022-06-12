@@ -1,6 +1,6 @@
 #include <WiFi.h>
 #include <AsyncTCP.h>
-#include <ESPAsyncWebServer.h>
+#include <ESPAsyncWebServer.h> //library change: https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/src/WebResponseImpl.h#L62
 #include "Car.h"
 #include "HTML.h"
 
@@ -11,7 +11,6 @@
 // Create AsyncWebServer object on port 80
 
 #define port 80
-#define ntc 36
 
 AsyncWebServer server(port);
 AsyncWebSocket ws("/ws");
@@ -105,7 +104,7 @@ void Car::initWebSocket() {
     server.addHandler(&ws);
 }
 
-String Car::processor(const String& var){
+String Car::processor(const String& var) {
     Serial.println("Data sent!");
     return String();
 }
@@ -113,18 +112,12 @@ String Car::processor(const String& var){
 void Car::carLoop() {
     ws.cleanupClients();
     readData();
-    display.clearDisplay();
-    display.setCursor(0, 8);
-    display.println(analogRead(ntc));
-    display.display();
 }
 
 void Car::initCar() {
 
     Serial.begin(9600);
     Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
-
-    pinMode(ntc, INPUT);
 
     if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
       Serial.println(F("SSD1306 allocation failed"));
@@ -149,12 +142,13 @@ void Car::initCar() {
 
     // Print ESP Local IP Address
     Serial.print("Koblet til internett med IP: ");
-    Serial.println(WiFi.localIP() + ":80");
+    Serial.print(WiFi.localIP());
+    Serial.println(":" + static_cast<String>(port));
     display.clearDisplay();
     writeDisplay("Koblet til med IP: ", 1);
     display.print(WiFi.localIP());
     display.println(":" + static_cast<String>(port));
-    display.println("WiFi: " + static_cast<String>(ssid)); //Seb la inn
+    //display.println("WiFi: " + static_cast<String>(ssid)); //Seb la inn
     display.display();
 
     initWebSocket();
