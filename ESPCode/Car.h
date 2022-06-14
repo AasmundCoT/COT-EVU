@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <WiFi.h>
@@ -20,14 +19,4 @@ class Car {
         static String processor(const String& var);
         void carLoop();
         void initCar();
-        void drive();
-        void w();
-        void a();
-        void s();
-        void d();
-        void q();
-        void e();
-        void en();
-        void to();
-        void tre();
 };
