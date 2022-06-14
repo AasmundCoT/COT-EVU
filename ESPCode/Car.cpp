@@ -12,6 +12,8 @@
 
 #define port 80
 
+int driveSpeed = 150;
+
 AsyncWebServer server(port);
 AsyncWebSocket ws("/ws");
 
@@ -59,24 +61,84 @@ void Car::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
       
-      data[len] = 0;
+        data[len] = 0;
 
-      switch(*(char*)data) {
-          case 'K':
-              drive(100,100,1,1);
-              break;
+        switch(*(char*)data) {
+            case 'f':
+                fetchData();
+                break;
 
-          case 'S':
-              drive(0,0,1,1);
-              break;
+            case 'g':
+                
+                break;
 
-          case 'D':
-              fetchData();
-              break;
+            case 'h':
+                
+                break;
 
-          default:
-              Serial.print("Bad package");
-              break;
+            case 'q':
+                drive(0,driveSpeed,1,1);
+                break;
+
+            case 'w':
+                drive(driveSpeed,driveSpeed,1,1);
+                break;
+
+            case 'e':
+                drive(driveSpeed,0,1,1);
+                break;
+
+            case 'a':
+                drive(driveSpeed,driveSpeed,1,0);
+                break;
+
+            case 's':
+                drive(driveSpeed,driveSpeed,0,0);
+                break;
+
+            case 'd':
+                drive(driveSpeed,driveSpeed,0,1);
+                break;
+
+            case 'F':
+                
+                break;
+
+            case 'G':
+                
+                break;
+
+            case 'H':
+                
+                break;
+
+            case 'Q':
+                drive(0,0,1,1);
+                break;
+
+            case 'W':
+                drive(0,0,1,1);
+                break;
+
+            case 'E':
+                drive(0,0,1,1);
+                break;
+
+            case 'A':
+                drive(0,0,1,1);
+                break;
+
+            case 'S':
+                drive(0,0,1,1);
+                break;
+
+            case 'D':
+                drive(0,0,1,1);
+                break;
+
+            default:
+                Serial.println("Bad package");
+                break;
         }
     } 
 }
