@@ -47,9 +47,21 @@
 
         <div class="outerButtonContainer">
             <div class="buttonContainerAction">
-                <div class="btn actionBtn Digit1"></div>
-                <div class="btn actionBtn Digit2"></div>
-                <div class="btn actionBtn Digit3"></div>
+                <div class="btn actionBtn Digit1">
+                    <span class="material-symbols-rounded toggleBtn0 toggle Digit1">
+                        mode_of_travel
+                    </span>
+                </div>
+                <div class="btn actionBtn Digit2">
+                    <span class="material-symbols-rounded toggleBtn1 toggle Digit2">
+                        mode_of_travel
+                    </span>
+                </div>
+                <div class="btn actionBtn Digit3">
+                    <span class="material-symbols-rounded toggleBtn2 toggle Digit3">
+                        open_with
+                    </span>
+                </div>
             </div>
             <div class="buttonContainerDrive">
                 <div class="btn driveBtn KeyQ">
@@ -107,6 +119,11 @@
         right: 0;
         left: 0;
         touch-action: manipulation;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
 
     .material-symbols-rounded {
@@ -119,12 +136,12 @@
         justify-content: center;
         align-items: center;
         border-radius: 10px;
+        filter: brightness(0) invert(1);
+        transform: scale(1.5);
     }
 
-    .arrow {
-        width: 100%;
-        height: 100%;
-        filter: brightness(0) invert(1); 
+    .toggleBtn1, .toggleBtn2 {
+        filter: opacity(0);
     }
 
     #mainContainer {   
@@ -172,6 +189,7 @@
         display: flex;
         align-items: center;
         flex-flow: row nowrap;
+        justify-content: space-between;
     }
 
     .chartLabel {
@@ -275,7 +293,7 @@
     }
 
     .buttonContainerAction {
-        height: 20%;
+        min-height: 20%;
     }
     
     .btn {
@@ -289,10 +307,12 @@
         margin: 1%;
         border: none;
         cursor: pointer;
+        min-width: 31%;
+        overflow: hidden;
     }
-    
-    .driveBtn {
-        width: 30%;
+
+    .actionBtn {
+        min-height: 30%;
     }
 
     .logoLandscape {
@@ -320,6 +340,7 @@
         
         .logoSlide { visibility: visible; width: auto; }
         .logoLandscape { visibility: hidden; height: 0; padding: 0; }
+        .toggle { transform: scale(1.2); }
 
     }
     
@@ -337,6 +358,7 @@
 
         .logoSlide { visibility: hidden; width: 0;}
         .logoLandscape { visibility: visible; height: auto; padding: 3%;}
+        .toggle { transform: scale(1.5); }
 
         @media screen and (pointer: fine) and (min-device-width: 500px) {
 
@@ -357,6 +379,7 @@
                 height: 60vh;
                 height: calc(var(--vh, 1vh) * 60);
             }
+
         }
 
     }
@@ -370,6 +393,8 @@
     var gateway = `ws://${window.location.hostname}/ws`;
     var websocket, ctx;
 
+    var isMobile = window.matchMedia("(pointer:coarse)").matches;
+
     var graphContainer = document.getElementsByClassName("graphSlide")[0];
     var chartLabels = document.getElementsByClassName("chartLabels")[0];
     var labelTickBoxes = document.getElementsByClassName("labelTickBox");
@@ -378,6 +403,7 @@
     var ctx = graph.getContext('2d');
 
     var keyToggle = true;
+    var toggleButtons = [false, false, false];
     var graphToggle = [false, false, false];
     var graphColors = ["#F8C9B5", "#189EFF", "#42D9C8"];
     var fontSize = 10;
@@ -420,7 +446,7 @@
 
         for(graphName of graphNames) {
             graphName.style.fontSize = `${0.26*chartLabelsHeight}px`;
-            graphName.style.width = `${0.20*graphContainerWidth}px`;
+            graphName.style.width = `${0.18*graphContainerWidth}px`;
         }
 
         if(window.innerHeight > window.innerWidth) {
@@ -513,6 +539,7 @@
 
     }
 
+    //hentet fra: https://codepen.io/simon-wu/pen/ExgLEXQ
     CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius) {
         if (width < 2 * radius) radius = width / 2;
         if (height < 2 * radius) radius = height / 2;
@@ -525,6 +552,13 @@
         this.closePath();
         return this;
     }
+
+    function updateData(newData) {
+        var index = parseInt(newData.charAt(0))-1;
+        var data = parseFloat(newData.substring(1));
+        graphData[index].shift();
+        graphData[index].push(data);
+    }  
 
     function toggleKeys() {
         keyToggle = !keyToggle;
@@ -561,15 +595,18 @@
 
     function onMessage(event) {
         console.log(event.data);
+        updateData(event.data);
     }
 
     function onLoad(event) {
         
         for(btn of buttons) {
             btn.addEventListener('touchstart', handleTouchDown);
-            btn.addEventListener('touchend', handleTouchUp);   
-            btn.addEventListener('mousedown', handleTouchDown);
-            btn.addEventListener('mouseup', handleTouchUp);
+            btn.addEventListener('touchend', handleTouchUp);  
+            if(!isMobile) {
+                btn.addEventListener('mousedown', handleTouchDown);
+                btn.addEventListener('mouseup', handleTouchUp);
+            } 
         }
         
         window.addEventListener('keydown', handleKeyDown);
@@ -657,6 +694,12 @@
 
         switch (btn) {
             case "Digit1":
+                if(toggleButtons[0]) {
+                    document.getElementsByClassName("toggleBtn0")[0].innerHTML = "mode_of_travel";
+                } else {                
+                    document.getElementsByClassName("toggleBtn0")[0].innerHTML = "open_with";
+                }
+                toggleButtons[0] = !toggleButtons[0];
                 websocket.send('F');
                 break;
 

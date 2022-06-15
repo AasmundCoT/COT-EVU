@@ -51,7 +51,8 @@ void readData() {
     int8_t received = (int8_t)Serial2.read();
     Serial.print("Recieved data: ");
     Serial.println(received);
-    ws.textAll(String(received));
+    //ws.textAll(String(received));
+    ws.textAll("1yeet");
   }
 }
 
