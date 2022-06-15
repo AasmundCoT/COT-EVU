@@ -48,9 +48,21 @@ const char index_html[] PROGMEM = R"rawliteral(
 
         <div class="outerButtonContainer">
             <div class="buttonContainerAction">
-                <div class="btn actionBtn Digit1"></div>
-                <div class="btn actionBtn Digit2"></div>
-                <div class="btn actionBtn Digit3"></div>
+                <div class="btn actionBtn Digit1">
+                    <span class="material-symbols-rounded toggleBtn0 Digit1">
+                        mode_of_travel
+                    </span>
+                </div>
+                <div class="btn actionBtn Digit2">
+                    <span class="material-symbols-rounded toggleBtn1 Digit2">
+                        mode_of_travel
+                    </span>
+                </div>
+                <div class="btn actionBtn Digit3">
+                    <span class="material-symbols-rounded toggleBtn2 Digit3">
+                        open_with
+                    </span>
+                </div>
             </div>
             <div class="buttonContainerDrive">
                 <div class="btn driveBtn KeyQ">
@@ -108,6 +120,11 @@ const char index_html[] PROGMEM = R"rawliteral(
         right: 0;
         left: 0;
         touch-action: manipulation;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
     }
 
     .material-symbols-rounded {
@@ -120,12 +137,12 @@ const char index_html[] PROGMEM = R"rawliteral(
         justify-content: center;
         align-items: center;
         border-radius: 10px;
+        filter: brightness(0) invert(1);
+        transform: scale(1.5);
     }
 
-    .arrow {
-        width: 100%;
-        height: 100%;
-        filter: brightness(0) invert(1); 
+    .toggleBtn1, .toggleBtn2 {
+        filter: opacity(0);
     }
 
     #mainContainer {   
@@ -173,6 +190,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         display: flex;
         align-items: center;
         flex-flow: row nowrap;
+        justify-content: space-between;
     }
 
     .chartLabel {
@@ -290,10 +308,8 @@ const char index_html[] PROGMEM = R"rawliteral(
         margin: 1%;
         border: none;
         cursor: pointer;
-    }
-    
-    .driveBtn {
-        width: 30%;
+        min-width: 31%;
+        overflow: hidden;
     }
 
     .logoLandscape {
@@ -371,6 +387,8 @@ const char index_html[] PROGMEM = R"rawliteral(
     var gateway = `ws://${window.location.hostname}/ws`;
     var websocket, ctx;
 
+    var isMobile = window.matchMedia("(pointer:coarse)").matches;
+
     var graphContainer = document.getElementsByClassName("graphSlide")[0];
     var chartLabels = document.getElementsByClassName("chartLabels")[0];
     var labelTickBoxes = document.getElementsByClassName("labelTickBox");
@@ -379,6 +397,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     var ctx = graph.getContext('2d');
 
     var keyToggle = true;
+    var toggleButtons = [false, false, false];
     var graphToggle = [false, false, false];
     var graphColors = ["#F8C9B5", "#189EFF", "#42D9C8"];
     var fontSize = 10;
@@ -421,7 +440,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
         for(graphName of graphNames) {
             graphName.style.fontSize = `${0.26*chartLabelsHeight}px`;
-            graphName.style.width = `${0.20*graphContainerWidth}px`;
+            graphName.style.width = `${0.18*graphContainerWidth}px`;
         }
 
         if(window.innerHeight > window.innerWidth) {
@@ -514,6 +533,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
     }
 
+    //hentet fra: https://codepen.io/simon-wu/pen/ExgLEXQ
     CanvasRenderingContext2D.prototype.roundRect = function (x, y, width, height, radius) {
         if (width < 2 * radius) radius = width / 2;
         if (height < 2 * radius) radius = height / 2;
@@ -568,9 +588,11 @@ const char index_html[] PROGMEM = R"rawliteral(
         
         for(btn of buttons) {
             btn.addEventListener('touchstart', handleTouchDown);
-            btn.addEventListener('touchend', handleTouchUp);   
-            btn.addEventListener('mousedown', handleTouchDown);
-            btn.addEventListener('mouseup', handleTouchUp);
+            btn.addEventListener('touchend', handleTouchUp);  
+            if(!isMobile) {
+                btn.addEventListener('mousedown', handleTouchDown);
+                btn.addEventListener('mouseup', handleTouchUp);
+            } 
         }
         
         window.addEventListener('keydown', handleKeyDown);
@@ -658,6 +680,13 @@ const char index_html[] PROGMEM = R"rawliteral(
 
         switch (btn) {
             case "Digit1":
+                if(toggleButtons[0]) {
+                    document.getElementsByClassName("toggleBtn0")[0].innerHTML = "mode_of_travel";
+                } else {                
+                    document.getElementsByClassName("toggleBtn0")[0].innerHTML = "open_with";
+                }
+                toggleButtons[0] = !toggleButtons[0];
+                console.log(toggleButtons[0]);
                 websocket.send('F');
                 break;
 

@@ -1,6 +1,6 @@
 #include "Car.h"
 
-Car car("iPhone", "testPassord");
+Car car("kornblomst12b", "Skilpadde.445!");
 
 void setup() {
     car.initCar();
