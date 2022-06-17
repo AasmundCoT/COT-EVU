@@ -1,6 +1,6 @@
 #include "Car.h"
 
-Car car("Nestingan_EXT", "Nestingan2019");
+Car car("iPhone", "testPassord");
 
 double ntcData;
 double proxData;
@@ -13,12 +13,15 @@ void setup() {
 void loop() {
 
     ntcData = car.readData(NTC);
-    proxData = car.readData(PROX);
-    lineData = car.readData(LINE);
-
     sendData(1, ntcData);
-    sendData(2, proxData);
-    sendData(3, lineData);
+
+    fetchData(LINE);
+    fetchData(PROX);
+
+    double data = readData();
+
+    sendData(2, data[PROX]);
+    sendData(3, data[LINE]);
 }
 
 void w(bool state) {

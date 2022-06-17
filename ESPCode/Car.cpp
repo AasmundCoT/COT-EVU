@@ -1,3 +1,4 @@
+// some inspiration: https://microcontrollerslab.com/esp32-websocket-server-arduino-ide-control-gpios-relays/
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h> //library change: https://github.com/me-no-dev/ESPAsyncWebServer/blob/master/src/WebResponseImpl.h#L62
@@ -50,7 +51,7 @@ void drive(int leftSpeed, int rightSpeed, int leftDirection, int rightDirection)
 
 void sendData(int graph, double data) {
     //if((millis()-prevDataMillis)<(1000/dataPerSec)) return;
-    if(data==3.14159265359) return;
+    if(data==NULL) return;
     if(graph<1) graph = 1;
     if(graph>3) graph = 3;
     data = floor(data*10)/10;
@@ -64,6 +65,7 @@ float bitToVolt(int n) {
 }
 
 double readNTC() {
+    if((millis()-prevReadMillis[0])<(1000/readPerSec)) return NULL;
     float voltNTC = bitToVolt(analogRead(NTCpin));
     float voltR10 = 3.3-voltNTC;
     float RNTC = (voltNTC/voltR10)*10000;
@@ -83,22 +85,17 @@ void fetchProx() {
     Serial2.write('p');
 }
 
-double Car::readData(int sensor) {
+void Car::fetchData(int sensor) {
 
-    switch (sensor) {
-        case 0:
-            if((millis()-prevReadMillis[0])<(1000/readPerSec)) return 3.14159265359;
-            prevReadMillis[0] = millis();
-            return readNTC();
-
-        case 1:
-            if((millis()-prevReadMillis[1])<(1000/readPerSec)) return 3.14159265359;
+    switch (sensore) {
+        case LINE:
+            if((millis()-prevReadMillis[1])<(1000/readPerSec)) return;
             prevReadMillis[1] = millis();
             fetchLine();
             break;
 
-        case 2:
-            if((millis()-prevReadMillis[2])<(1000/readPerSec)) return 3.14159265359;
+        case PROX:
+            if((millis()-prevReadMillis[2])<(1000/readPerSec)) return;
             prevReadMillis[2] = millis();
             fetchProx();
             break;
@@ -106,8 +103,12 @@ double Car::readData(int sensor) {
         default:
             break;
     }
+}
 
-    delay(5);
+double[2] Car::readData() {
+
+    double dataArr[2] = {NULL,NULL};
+
     while (Serial2.available()) {
         int8_t received = (int8_t)Serial2.read();
 
@@ -117,7 +118,7 @@ double Car::readData(int sensor) {
                 if(Serial2.available()) {
                     int8_t data = Serial2.read();
                     Serial.println(data);
-                    return (double)data;
+                    dataArr[LINE] = (double)data;
                 }
 
             case 'p':
@@ -129,14 +130,14 @@ double Car::readData(int sensor) {
                     }
                 }
                 Serial.println((data[0]+data[1])/2);
-                return (data[0]+data[1])/2;
+                dataArr[PROX] = (data[0]+data[1])/2;
 
             default:
                 break;
         }
     }
 
-    return 3.14159265359;
+    return dataArr;
 }
 
 void Car::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
