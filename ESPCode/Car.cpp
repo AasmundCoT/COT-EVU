@@ -16,7 +16,7 @@ int driveSpeed = 200;
 unsigned long prevDataMillis = 0;
 unsigned long prevReadMillis[3] = {0,0,0};
 int dataPerSec = 4;
-int readPerSec = dataPerSec; 
+int readPerSec = dataPerSec;
 
 AsyncWebServer server(port);
 AsyncWebSocket ws("/ws");
@@ -71,7 +71,7 @@ double readNTC() {
     double coeff = 0.000253164556962; //1/B
     double tempcoeff = 0.00335402; //1/T0
     double Rcoeff = RNTC/10000; //R/R0
-    double temperatureK = 1/(tempcoeff+coeff*log(Rcoeff)); 
+    double temperatureK = 1/(tempcoeff+coeff*log(Rcoeff));
     double temperatureC = temperatureK - 273.15;
     return temperatureC;
 }
@@ -141,91 +141,91 @@ double Car::readData(int sensor) {
 }
 
 void Car::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
-  
+
     AwsFrameInfo *info = (AwsFrameInfo*)arg;
 
     if (info->final && info->index == 0 && info->len == len && info->opcode == WS_TEXT) {
-      
+
         data[len] = 0;
 
         switch(*(char*)data) {
             case 'f':
-                
+                line(ON);
                 break;
 
             case 'g':
-                
+                circle(ON);
                 break;
 
             case 'h':
-                
+                square(ON);
                 break;
 
             case 'q':
-                drive(0,driveSpeed,1,1);
+                q(DOWN);
                 break;
 
             case 'w':
-                drive(driveSpeed,driveSpeed,1,1);
+                w(DOWN);
                 break;
 
             case 'e':
-                drive(driveSpeed,0,1,1);
+                e(DOWN);
                 break;
 
             case 'a':
-                drive(driveSpeed,driveSpeed,1,0);
+                a(DOWN);
                 break;
 
             case 's':
-                drive(driveSpeed,driveSpeed,0,0);
+                s(DOWN);
                 break;
 
             case 'd':
-                drive(driveSpeed,driveSpeed,0,1);
+                d(DOWN);
                 break;
 
             case 'F':
-                
+                line(OFF);
                 break;
 
             case 'G':
-                
+                circle(OFF);
                 break;
 
             case 'H':
-                
+                square(OFF);
                 break;
 
             case 'Q':
-                drive(0,0,1,1);
+                q(UP);
                 break;
 
             case 'W':
-                drive(0,0,1,1);
+                w(UP);
                 break;
 
             case 'E':
-                drive(0,0,1,1);
+                e(UP);
                 break;
 
             case 'A':
-                drive(0,0,1,1);
+                a(UP);
                 break;
 
             case 'S':
-                drive(0,0,1,1);
+                s(UP);
                 break;
 
             case 'D':
-                drive(0,0,1,1);
+                d(UP);
                 break;
 
             default:
                 Serial.println("Bad package");
                 break;
         }
-    } 
+    }
 }
 
 void Car::onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
@@ -284,13 +284,13 @@ void Car::initCar() {
         Serial.println(F("SSD1306 allocation failed"));
         for(;;);
     }
-  
+
     delay(2000);
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(WHITE);
     writeDisplay("Skjerm klar", 1);
-    
+
     // Connect to Wi-Fi
     WiFi.begin(ssid, password);
 
