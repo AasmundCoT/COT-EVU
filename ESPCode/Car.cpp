@@ -12,7 +12,6 @@
 
 #define port 80
 
-int driveSpeed = 200;
 unsigned long prevDataMillis = 0;
 unsigned long prevReadMillis[3] = {0,0,0};
 int dataPerSec = 4;
@@ -41,7 +40,7 @@ void writeDisplay(String str, int line) {
     display.display();
 }
 
-void drive(int rightSpeed, int leftSpeed, int rightDirection, int leftDirection) {
+void drive(int leftSpeed, int rightSpeed, int leftDirection, int rightDirection) {
     Serial2.write('k');
     Serial2.write(rightSpeed);
     Serial2.write(leftSpeed);
@@ -150,6 +149,7 @@ void Car::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
         switch(*(char*)data) {
             case 'f':
+                Serial2.write('c');
                 line(ON);
                 break;
 
@@ -270,14 +270,13 @@ void Car::initCar() {
     Serial.begin(9600);
     Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
 
-    //create a task that will be executed in the Task2code() function, with priority 1 and executed on core 1
     xTaskCreatePinnedToCore(
-                    websocketLoop,   /* Task function. */
-                    "websocket",     /* name of task. */
-                    10000,       /* Stack size of task */
-                    NULL,        /* parameter of the task */
-                    1,           /* priority of the task */
-                    &websocketCore,      /* Task handle to keep track of created task */
+                    websocketLoop, 
+                    "websocket",   
+                    10000,     
+                    NULL,        
+                    1,           
+                    &websocketCore,    
                     1);
 
     if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
@@ -323,7 +322,5 @@ void Car::initCar() {
     server.begin();
 
     Serial.println("Bil klar!");
-
-    Serial2.write('c');
 
 }

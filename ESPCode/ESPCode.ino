@@ -21,50 +21,54 @@ void loop() {
     sendData(3, lineData);
 }
 
-void w(bool state){
-  if(state==DOWN){
-    drive(100,100,FORWARD,FORWARD);
-  }else if(state==UP){
+void w(bool state) {
+  if(state==DOWN) {
+    drive(200,200,FORWARD,FORWARD);
+  }else if(state==UP) {
     drive(0,0,FORWARD,FORWARD);
   }
 }
 
-void a(bool state){
-  if(state==DOWN){
-    drive(100,100,BACKWARD,FORWARD);
-  }else if(state==UP){
+void a(bool state) {
+  if(state==DOWN) {
+    drive(200,200,BACKWARD,FORWARD);
+  }else if(state==UP) {
     drive(0,0,FORWARD,FORWARD);
   }
 }
 
-void s(bool state){
-  if(state==DOWN){
-    drive(100,100,BACKWARD,BACKWARD);
-  }else if(state==UP){
+void s(bool state) {
+  if(state==DOWN) {
+    drive(200,200,BACKWARD,BACKWARD);
+  }else if(state==UP) {
     drive(0,0,FORWARD,FORWARD);
   }
 }
 
-void d(bool state){
-  if(state==DOWN){
-    drive(100,100,FORWARD,BACKWARD);
-  }else if(state==UP){
+void d(bool state) {
+  if(state==DOWN) {
+    drive(200,200,FORWARD,BACKWARD);
+  }else if(state==UP) {
     drive(0,0,FORWARD,FORWARD);
   }
 }
 
-void q(bool state){
-  if(state==DOWN){
-    drive(0,100,FORWARD,FORWARD);
-  }else if(state==UP){
+void q(bool state) {
+  if(state==DOWN) {
+    drive(200,0,FORWARD,FORWARD);
+  }else if(state==UP) {
     drive(0,0,FORWARD,FORWARD);
   }
 }
 
-void e(bool state){
-  if(state==DOWN){
-    drive(100,0,FORWARD,FORWARD);
-  }else if(state==UP){
+void e(bool state) {
+  if(state==DOWN) {
+    drive(0,200,FORWARD,FORWARD);
+  }else if(state==UP) {
     drive(0,0,FORWARD,FORWARD);
   }
 }
+
+void line(bool state) {};
+void circle(bool state) {};
+void square(bool state) {};

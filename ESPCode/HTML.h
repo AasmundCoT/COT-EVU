@@ -613,7 +613,6 @@ const char index_html[] PROGMEM = R"rawliteral(
     }
 
     function onMessage(event) {
-        console.log(event.data);
         updateData(event.data);
     }
 
@@ -715,10 +714,10 @@ const char index_html[] PROGMEM = R"rawliteral(
             case "Digit1":
                 if(buttonToggle[0]) {
                     document.getElementsByClassName("toggleBtn0")[0].innerHTML = "mode_of_travel";
-                    websocket.send('f');
+                    websocket.send('F');
                 } else {                
                     document.getElementsByClassName("toggleBtn0")[0].innerHTML = "open_with";
-                    websocket.send('F');
+                    websocket.send('f');
                 }
                 buttonToggle[0] = !buttonToggle[0];
                 break;
@@ -726,10 +725,10 @@ const char index_html[] PROGMEM = R"rawliteral(
             case "Digit2":
                 if(buttonToggle[1]) {
                     document.getElementsByClassName("toggleBtn1")[0].innerHTML = "radio_button_unchecked";
-                    websocket.send('G');
+                    websocket.send('g');
                 } else {                
                     document.getElementsByClassName("toggleBtn1")[0].innerHTML = "radio_button_checked";
-                    websocket.send('g');
+                    websocket.send('G');
                 }
                 buttonToggle[1] = !buttonToggle[1];
                 break;
@@ -737,10 +736,10 @@ const char index_html[] PROGMEM = R"rawliteral(
             case "Digit3":
                 if(buttonToggle[2]) {
                     document.getElementsByClassName("toggleBtn2")[0].innerHTML = "check_box_outline_blank";
-                    websocket.send('H');
+                    websocket.send('h');
                 } else {                
                     document.getElementsByClassName("toggleBtn2")[0].innerHTML = "check_box";
-                    websocket.send('h');
+                    websocket.send('H');
                 }
                 buttonToggle[2] = !buttonToggle[2];
                 break;
