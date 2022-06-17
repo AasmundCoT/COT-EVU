@@ -12,17 +12,13 @@ void setup() {
 
 void loop() {
 
-    sendData(1, car.readData(NTC));
-    sendData(2, car.readData(PROX));
-    sendData(3, car.readData(LINE));
-    
     ntcData = car.readData(NTC);
     proxData = car.readData(PROX);
     lineData = car.readData(LINE);
 
-    sendData(1, ntc);
-    sendData(2, prox);
-    sendData(3, line);
+    sendData(1, ntcData);
+    sendData(2, proxData);
+    sendData(3, lineData);
 }
 
 void w(bool state){
