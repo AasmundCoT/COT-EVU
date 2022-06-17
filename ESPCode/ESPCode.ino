@@ -2,20 +2,23 @@
 
 Car car("Nestingan_EXT", "Nestingan2019");
 
-double ntc;
-double prox;
-double line;
+double ntcData;
+double proxData;
+double lineData;
 
 void setup() {
     car.initCar();
 }
 
 void loop() {
-    car.carLoop();
+
+    sendData(1, car.readData(NTC));
+    sendData(2, car.readData(PROX));
+    sendData(3, car.readData(LINE));
     
-    ntc = car.readData(NTC);
-    prox = car.readData(PROX);
-    line = car.readData(LINE);
+    ntcData = car.readData(NTC);
+    proxData = car.readData(PROX);
+    lineData = car.readData(LINE);
 
     sendData(1, ntc);
     sendData(2, prox);

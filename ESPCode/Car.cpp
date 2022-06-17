@@ -12,7 +12,7 @@
 
 #define port 80
 
-int driveSpeed = 150;
+int driveSpeed = 200;
 unsigned long prevDataMillis = 0;
 unsigned long prevReadMillis[3] = {0,0,0};
 int dataPerSec = 4;
@@ -30,6 +30,8 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #define TXD2 17
 
 #define NTCpin 36
+
+TaskHandle_t websocketCore; 
 
 Car::Car(char* ssid, char* password): ssid{ssid}, password{password} {};
 
@@ -106,8 +108,8 @@ double Car::readData(int sensor) {
             break;
     }
 
+    delay(5);
     while (Serial2.available()) {
-        delay(20);
         int8_t received = (int8_t)Serial2.read();
 
         switch (received) {
@@ -254,14 +256,29 @@ String Car::processor(const String& var) {
     return String();
 }
 
-void Car::carLoop() {
+void websocketLoop( void * pvParameters ){
+  Serial.print("Websocket connection runniong on core: ");
+  Serial.println(xPortGetCoreID());
+
+  for(;;) {
     ws.cleanupClients();
+  } 
 }
 
 void Car::initCar() {
 
     Serial.begin(9600);
     Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
+
+    //create a task that will be executed in the Task2code() function, with priority 1 and executed on core 1
+    xTaskCreatePinnedToCore(
+                    websocketLoop,   /* Task function. */
+                    "websocket",     /* name of task. */
+                    10000,       /* Stack size of task */
+                    NULL,        /* parameter of the task */
+                    1,           /* priority of the task */
+                    &websocketCore,      /* Task handle to keep track of created task */
+                    1);
 
     if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
         Serial.println(F("SSD1306 allocation failed"));

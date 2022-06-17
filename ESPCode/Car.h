@@ -30,7 +30,6 @@ class Car {
              void *arg, uint8_t *data, size_t len);
         static void initWebSocket();
         static String processor(const String& var);
-        void carLoop();
         void initCar();
         double readData(int sensor);
 };
@@ -39,6 +38,8 @@ double readNTC();
 void fetchLine();
 void fetchProx();
 void sendData(int graph, double data);
+
+void drive(int rightSpeed, int leftSpeed, int rightDirection, int leftDirection);
 
 void w(bool state);
 void a(bool state);
