@@ -49,18 +49,18 @@ const char index_html[] PROGMEM = R"rawliteral(
         <div class="outerButtonContainer">
             <div class="buttonContainerAction">
                 <div class="btn actionBtn Digit1">
-                    <span class="material-symbols-rounded toggleBtn0 Digit1">
+                    <span class="material-symbols-rounded toggleBtn0 toggle Digit1">
                         mode_of_travel
                     </span>
                 </div>
                 <div class="btn actionBtn Digit2">
-                    <span class="material-symbols-rounded toggleBtn1 Digit2">
-                        mode_of_travel
+                    <span class="material-symbols-rounded toggleBtn1 toggle Digit2">
+                        radio_button_unchecked
                     </span>
                 </div>
                 <div class="btn actionBtn Digit3">
-                    <span class="material-symbols-rounded toggleBtn2 Digit3">
-                        open_with
+                    <span class="material-symbols-rounded toggleBtn2 toggle Digit3">
+                        check_box_outline_blank
                     </span>
                 </div>
             </div>
@@ -139,10 +139,6 @@ const char index_html[] PROGMEM = R"rawliteral(
         border-radius: 10px;
         filter: brightness(0) invert(1);
         transform: scale(1.5);
-    }
-
-    .toggleBtn1, .toggleBtn2 {
-        filter: opacity(0);
     }
 
     #mainContainer {   
@@ -227,16 +223,16 @@ const char index_html[] PROGMEM = R"rawliteral(
     }
 
     ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
-        color: rgb(56, 56, 56, 0.1);
+        color: rgb(56, 56, 56, 0.3);
         opacity: 1; /* Firefox */
     }
 
     :-ms-input-placeholder { /* Internet Explorer 10-11 */
-        color: rgb(56, 56, 56, 0.1);
-    }
+        color: rgb(56, 56, 56, 0.3);
+    }1
 
     ::-ms-input-placeholder { /* Microsoft Edge */
-        color: rgb(56, 56, 56, 0.1);
+        color: rgb(56, 56, 56, 0.3);
     }
 
     input {
@@ -294,7 +290,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     }
 
     .buttonContainerAction {
-        height: 20%;
+        min-height: 20%;
     }
     
     .btn {
@@ -310,6 +306,10 @@ const char index_html[] PROGMEM = R"rawliteral(
         cursor: pointer;
         min-width: 31%;
         overflow: hidden;
+    }
+
+    .actionBtn {
+        min-height: 30%;
     }
 
     .logoLandscape {
@@ -337,6 +337,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         
         .logoSlide { visibility: visible; width: auto; }
         .logoLandscape { visibility: hidden; height: 0; padding: 0; }
+        .toggle { transform: scale(1); }
 
     }
     
@@ -354,6 +355,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
         .logoSlide { visibility: hidden; width: 0;}
         .logoLandscape { visibility: visible; height: auto; padding: 3%;}
+        .toggle { transform: scale(1.5); }
 
         @media screen and (pointer: fine) and (min-device-width: 500px) {
 
@@ -374,6 +376,7 @@ const char index_html[] PROGMEM = R"rawliteral(
                 height: 60vh;
                 height: calc(var(--vh, 1vh) * 60);
             }
+
         }
 
     }
@@ -397,20 +400,21 @@ const char index_html[] PROGMEM = R"rawliteral(
     var ctx = graph.getContext('2d');
 
     var keyToggle = true;
-    var toggleButtons = [false, false, false];
+    var buttonToggle = [false, false, false];
     var graphToggle = [false, false, false];
     var graphColors = ["#F8C9B5", "#189EFF", "#42D9C8"];
     var fontSize = 10;
 
-    var dataPoints = 10;
+    var dataPoints = 50;
 
-    var graphData = [[0,2,3,4,5,6,7,8,9,10],[1,3,2,4,3,5,4,6,5,7],[1,1,2,3,5,8,13,21,34,25]]; //test
+    //var graphData = [[0,0,0,0,0,0,0,0,0,0],[1,3,2,4,3,5,4,6,5,7],[1,1,2,3,5,8,13,21,34,25]]; //test
+    var graphData = [[],[],[]]
 
-    // for(let i = 0; i<3; i++) {
-    //     for(let j = 0; j<dataPoints; j++) {
-    //         graphData[i].push(0);
-    //     }
-    // }
+    for(let i = 0; i<3; i++) {
+        for(let j = 0; j<dataPoints; j++) {
+            graphData[i].push(0);
+        }
+    }
 
     setInterval(updateView, 100);
     window.addEventListener('load', onLoad);
@@ -470,6 +474,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         var dataIntervalY;
         var activeGraphColors = [];
         var dataTop = 0;
+        var dataBottom = 0;
         
         for(let i = 0; i<3; i++) {
             if(graphToggle[i]) {
@@ -479,20 +484,38 @@ const char index_html[] PROGMEM = R"rawliteral(
             }
         }
 
+        ctx.roundRect(graphLeft,graphTop+canvasWidth,graphRight-graphLeft,0.5*canvasWidth,10);
+        ctx.fillStyle = 'rgb(61,61,61,0.05)';
+        ctx.fill();
+
+        ctx.roundRect(graphLeft+1.5*canvasWidth,(graphBottom-graphTop)/2+2.4*canvasWidth,graphRight-graphLeft-1.5*canvasWidth,0.5*canvasWidth,10);
+        ctx.fillStyle = 'rgb(61,61,61,0.05)';
+        ctx.fill();
+
         if(activeData.length) {
 
             var maxRow = activeData.map(function(row){ return Math.max.apply(Math, row); });
             dataTop = Math.max.apply(null, maxRow);
 
-            if(dataTop) {
-                dataIntervalY = (graphBottom-graphTop-2*canvasWidth)/dataTop;
+            var minRow = activeData.map(function(row){ return Math.min.apply(Math, row); });
+            dataBottom = Math.min.apply(null, minRow);
+
+            if(dataTop-dataBottom) {
+                dataIntervalY = ((graphBottom-graphTop-2.7*canvasWidth)/(dataTop-dataBottom));
             } else {
                 dataIntervalY = 0;
             }
 
+            if(dataBottom<0&&dataTop>0) {
+                ctx.roundRect(graphLeft+1.5*canvasWidth,graphBottom-dataIntervalY*Math.abs(dataBottom)-1.5*canvasWidth-1.5,graphRight-graphLeft-1.5*canvasWidth,0.5*canvasWidth,10);
+                ctx.fillStyle = 'rgb(61,61,61,0.3)';
+                ctx.fill();
+            }
+
             for(let i = 0; i<activeData.length; i++) {
                 for(let j = 0; j<dataPoints; j++) {
-                    activeDataPos[i].push([j*dataIntervalX+graphLeft+1.5*canvasWidth,graphBottom-activeData[i][j]*dataIntervalY-1.5*canvasWidth]);
+                    activeDataPos[i].push([j*dataIntervalX+graphLeft+1.5*canvasWidth,
+                    graphBottom-(activeData[i][j]-dataBottom)*dataIntervalY-1.5*canvasWidth]);
                 }
             }
 
@@ -507,7 +530,9 @@ const char index_html[] PROGMEM = R"rawliteral(
                 }
             }
 
-            if(dataTop) {
+            ctx.fillStyle = 'black';
+
+            if(dataTop-dataBottom) {
                 ctx.font = `${fontSize}px Roboto`;
                 ctx.textAlign = "right";
                 ctx.fillText(dataTop, graphLeft-canvasWidth, graphTop+0.75*canvasWidth+fontSize/2);
@@ -515,7 +540,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
             ctx.font = `${fontSize}px Roboto`;
             ctx.textAlign = "right";
-            ctx.fillText(0, graphLeft-canvasWidth, graphBottom-0.75*canvasWidth+fontSize/4);
+            ctx.fillText(dataBottom, graphLeft-canvasWidth, graphBottom-0.75*canvasWidth+fontSize/4);
 
         }
 
@@ -546,6 +571,13 @@ const char index_html[] PROGMEM = R"rawliteral(
         this.closePath();
         return this;
     }
+
+    function updateData(newData) {
+        var index = parseInt(newData.charAt(0))-1;
+        var data = parseFloat(newData.substring(1));
+        graphData[index].shift();
+        graphData[index].push(data);
+    }  
 
     function toggleKeys() {
         keyToggle = !keyToggle;
@@ -582,6 +614,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
     function onMessage(event) {
         console.log(event.data);
+        updateData(event.data);
     }
 
     function onLoad(event) {
@@ -620,15 +653,15 @@ const char index_html[] PROGMEM = R"rawliteral(
 
         switch (btn) {
             case "Digit1":
-                websocket.send('f');
+                
                 break;
 
             case "Digit2":
-                websocket.send('g');
+                
                 break;
                 
             case "Digit3":
-                websocket.send('h');
+                
                 break;
 
             case "KeyQ":
@@ -680,22 +713,36 @@ const char index_html[] PROGMEM = R"rawliteral(
 
         switch (btn) {
             case "Digit1":
-                if(toggleButtons[0]) {
+                if(buttonToggle[0]) {
                     document.getElementsByClassName("toggleBtn0")[0].innerHTML = "mode_of_travel";
+                    websocket.send('f');
                 } else {                
                     document.getElementsByClassName("toggleBtn0")[0].innerHTML = "open_with";
+                    websocket.send('F');
                 }
-                toggleButtons[0] = !toggleButtons[0];
-                console.log(toggleButtons[0]);
-                websocket.send('F');
+                buttonToggle[0] = !buttonToggle[0];
                 break;
 
             case "Digit2":
-                websocket.send('G');
+                if(buttonToggle[1]) {
+                    document.getElementsByClassName("toggleBtn1")[0].innerHTML = "radio_button_unchecked";
+                    websocket.send('G');
+                } else {                
+                    document.getElementsByClassName("toggleBtn1")[0].innerHTML = "radio_button_checked";
+                    websocket.send('g');
+                }
+                buttonToggle[1] = !buttonToggle[1];
                 break;
                 
             case "Digit3":
-                websocket.send('H');
+                if(buttonToggle[2]) {
+                    document.getElementsByClassName("toggleBtn2")[0].innerHTML = "check_box_outline_blank";
+                    websocket.send('H');
+                } else {                
+                    document.getElementsByClassName("toggleBtn2")[0].innerHTML = "check_box";
+                    websocket.send('h');
+                }
+                buttonToggle[2] = !buttonToggle[2];
                 break;
 
             case "KeyQ":

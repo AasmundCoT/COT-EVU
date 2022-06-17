@@ -13,24 +13,30 @@
 #define port 80
 
 int driveSpeed = 150;
+unsigned long prevDataMillis = 0;
+unsigned long prevReadMillis[3] = {0,0,0};
+int dataPerSec = 4;
+int readPerSec = dataPerSec; 
 
 AsyncWebServer server(port);
 AsyncWebSocket ws("/ws");
 
 #define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64 
+#define SCREEN_HEIGHT 64
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 #define RXD2 16
 #define TXD2 17
 
+#define NTCpin 36
+
 Car::Car(char* ssid, char* password): ssid{ssid}, password{password} {};
 
 void writeDisplay(String str, int line) {
-  display.setCursor(0, line*8);
-  display.println(str);
-  display.display();
+    display.setCursor(0, line*8);
+    display.println(str);
+    display.display();
 }
 
 void drive(int rightSpeed, int leftSpeed, int rightDirection, int leftDirection) {
@@ -41,19 +47,95 @@ void drive(int rightSpeed, int leftSpeed, int rightDirection, int leftDirection)
     Serial2.write(leftDirection);
 }
 
-void fetchData() {
-  Serial2.write('p');
+void sendData(int graph, double data) {
+    //if((millis()-prevDataMillis)<(1000/dataPerSec)) return;
+    if(data==3.14159265359) return;
+    if(graph<1) graph = 1;
+    if(graph>3) graph = 3;
+    data = floor(data*10)/10;
+    ws.textAll(String(graph) + String(data));
+    prevDataMillis = millis();
 }
 
-void readData() {
-  while(Serial2.available()) {
-    delay(20);
-    int8_t received = (int8_t)Serial2.read();
-    Serial.print("Recieved data: ");
-    Serial.println(received);
-    //ws.textAll(String(received));
-    ws.textAll("1yeet");
-  }
+float bitToVolt(int n) {
+    float volt = (float)n*3.3/4095;
+    return volt;
+}
+
+double readNTC() {
+    float voltNTC = bitToVolt(analogRead(NTCpin));
+    float voltR10 = 3.3-voltNTC;
+    float RNTC = (voltNTC/voltR10)*10000;
+    double coeff = 0.000253164556962; //1/B
+    double tempcoeff = 0.00335402; //1/T0
+    double Rcoeff = RNTC/10000; //R/R0
+    double temperatureK = 1/(tempcoeff+coeff*log(Rcoeff)); 
+    double temperatureC = temperatureK - 273.15;
+    return temperatureC;
+}
+
+void fetchLine() {
+    Serial2.write('l');
+}
+
+void fetchProx() {
+    Serial2.write('p');
+}
+
+double Car::readData(int sensor) {
+
+    switch (sensor) {
+        case 0:
+            if((millis()-prevReadMillis[0])<(1000/readPerSec)) return 3.14159265359;
+            prevReadMillis[0] = millis();
+            return readNTC();
+
+        case 1:
+            if((millis()-prevReadMillis[1])<(1000/readPerSec)) return 3.14159265359;
+            prevReadMillis[1] = millis();
+            fetchLine();
+            break;
+
+        case 2:
+            if((millis()-prevReadMillis[2])<(1000/readPerSec)) return 3.14159265359;
+            prevReadMillis[2] = millis();
+            fetchProx();
+            break;
+
+        default:
+            break;
+    }
+
+    while (Serial2.available()) {
+        delay(20);
+        int8_t received = (int8_t)Serial2.read();
+
+        switch (received) {
+            case 'l':
+                Serial.print("Recieved data from line sensor: ");
+                if(Serial2.available()) {
+                    int8_t data = Serial2.read();
+                    Serial.println(data);
+                    return (double)data;
+                }
+
+            case 'p':
+                int8_t data[2];
+                Serial.print("Recieved data from proximity sensor: ");
+                for(int i = 0; i<2; i++) {
+                    if(Serial2.available()) {
+                        data[i] = Serial2.read();
+                    }
+                }
+                Serial.println((data[0]+data[1])/2);
+                return (data[0]+data[1])/2;
+
+            default:
+                break;
+        }
+    }
+
+    return 3.14159265359;
 }
 
 void Car::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
@@ -66,7 +148,7 @@ void Car::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
         switch(*(char*)data) {
             case 'f':
-                fetchData();
+                
                 break;
 
             case 'g':
@@ -174,7 +256,6 @@ String Car::processor(const String& var) {
 
 void Car::carLoop() {
     ws.cleanupClients();
-    readData();
 }
 
 void Car::initCar() {
@@ -183,8 +264,8 @@ void Car::initCar() {
     Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
 
     if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
-      Serial.println(F("SSD1306 allocation failed"));
-      for(;;);
+        Serial.println(F("SSD1306 allocation failed"));
+        for(;;);
     }
   
     delay(2000);
@@ -197,10 +278,10 @@ void Car::initCar() {
     WiFi.begin(ssid, password);
 
     while (WiFi.status() != WL_CONNECTED) {
-      delay(1000);
-      Serial.println("Kobler til WIFI...");
-      display.clearDisplay();
-      writeDisplay("Kobler til WIFI...", 1);
+        delay(1000);
+        Serial.println("Kobler til WIFI...");
+        display.clearDisplay();
+        writeDisplay("Kobler til WIFI...", 1);
     }
 
     // Print ESP Local IP Address
@@ -225,5 +306,7 @@ void Car::initCar() {
     server.begin();
 
     Serial.println("Bil klar!");
+
+    Serial2.write('c');
 
 }

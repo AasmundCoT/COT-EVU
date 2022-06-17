@@ -4,6 +4,10 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 
+#define NTC 0
+#define LINE 1
+#define PROX 2
+
 class Car {
     private:
         const char* ssid;
@@ -19,4 +23,10 @@ class Car {
         static String processor(const String& var);
         void carLoop();
         void initCar();
+        double readData(int sensor);
 };
+
+double readNTC();
+void fetchLine();
+void fetchProx();
+void sendData(int graph, double data);

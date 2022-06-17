@@ -96,13 +96,15 @@ void loop() {
         proxSensors.read();
         uint8_t leftValue = proxSensors.countsFrontWithLeftLeds();
         uint8_t rightValue = proxSensors.countsFrontWithRightLeds();
+        Serial1.write('p');
         Serial1.write(leftValue);
         Serial1.write(rightValue);
         break;
         
       case 'l': //linjesensorer
-        pos = (int8_t)(lineSensors.readLine(lineSensorValues));
-        Serial1.println(pos);
+        pos = (int8_t)((lineSensors.readLine(lineSensorValues)-2000)/200);
+        Serial1.write('l');
+        Serial1.write(pos);
         break;
         
       default:
