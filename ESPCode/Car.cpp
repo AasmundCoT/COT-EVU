@@ -13,11 +13,6 @@
 
 #define port 80
 
-unsigned long prevDataMillis = 0;
-unsigned long prevReadMillis[3] = {0,0,0};
-int dataPerSec = 4;
-int readPerSec = dataPerSec;
-
 AsyncWebServer server(port);
 AsyncWebSocket ws("/ws");
 
@@ -31,6 +26,14 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 
 #define NTCpin 36
 
+int8_t dataPlaceholder[2] = {0,0};
+
+unsigned long prevDataMillis[3] = {0,0,0};
+int dataPerSec = 10;
+
+unsigned long prevDriveMillis = 0;
+int drivePerSec = 100;
+
 TaskHandle_t websocketCore; 
 
 Car::Car(char* ssid, char* password): ssid{ssid}, password{password} {};
@@ -42,21 +45,22 @@ void writeDisplay(String str, int line) {
 }
 
 void drive(int leftSpeed, int rightSpeed, int leftDirection, int rightDirection) {
+    if((millis()-prevDriveMillis)<(1000/drivePerSec)&&(leftSpeed||rightSpeed)) return;
     Serial2.write('k');
     Serial2.write(rightSpeed);
     Serial2.write(leftSpeed);
     Serial2.write(rightDirection);
     Serial2.write(leftDirection);
+    prevDriveMillis = millis();
 }
 
 void sendData(int graph, double data) {
-    //if((millis()-prevDataMillis)<(1000/dataPerSec)) return;
-    if(data==NULL) return;
+    if((millis()-prevDataMillis[graph-1])<(1000/dataPerSec)) return;
     if(graph<1) graph = 1;
     if(graph>3) graph = 3;
     data = floor(data*10)/10;
     ws.textAll(String(graph) + String(data));
-    prevDataMillis = millis();
+    prevDataMillis[graph-1] = millis();
 }
 
 float bitToVolt(int n) {
@@ -65,7 +69,6 @@ float bitToVolt(int n) {
 }
 
 double readNTC() {
-    if((millis()-prevReadMillis[0])<(1000/readPerSec)) return NULL;
     float voltNTC = bitToVolt(analogRead(NTCpin));
     float voltR10 = 3.3-voltNTC;
     float RNTC = (voltNTC/voltR10)*10000;
@@ -77,67 +80,16 @@ double readNTC() {
     return temperatureC;
 }
 
-void fetchLine() {
-    Serial2.write('l');
+int readProx() {
+    return dataPlaceholder[0];
 }
 
-void fetchProx() {
-    Serial2.write('p');
+int readLine() {
+    return dataPlaceholder[1];
 }
 
-void Car::fetchData(int sensor) {
-
-    switch (sensore) {
-        case LINE:
-            if((millis()-prevReadMillis[1])<(1000/readPerSec)) return;
-            prevReadMillis[1] = millis();
-            fetchLine();
-            break;
-
-        case PROX:
-            if((millis()-prevReadMillis[2])<(1000/readPerSec)) return;
-            prevReadMillis[2] = millis();
-            fetchProx();
-            break;
-
-        default:
-            break;
-    }
-}
-
-double[2] Car::readData() {
-
-    double dataArr[2] = {NULL,NULL};
-
-    while (Serial2.available()) {
-        int8_t received = (int8_t)Serial2.read();
-
-        switch (received) {
-            case 'l':
-                Serial.print("Recieved data from line sensor: ");
-                if(Serial2.available()) {
-                    int8_t data = Serial2.read();
-                    Serial.println(data);
-                    dataArr[LINE] = (double)data;
-                }
-
-            case 'p':
-                int8_t data[2];
-                Serial.print("Recieved data from proximity sensor: ");
-                for(int i = 0; i<2; i++) {
-                    if(Serial2.available()) {
-                        data[i] = Serial2.read();
-                    }
-                }
-                Serial.println((data[0]+data[1])/2);
-                dataArr[PROX] = (data[0]+data[1])/2;
-
-            default:
-                break;
-        }
-    }
-
-    return dataArr;
+void calibrate() {
+    Serial2.write('c');
 }
 
 void Car::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
@@ -150,7 +102,6 @@ void Car::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
         switch(*(char*)data) {
             case 'f':
-                Serial2.write('c');
                 line(ON);
                 break;
 
@@ -258,18 +209,24 @@ String Car::processor(const String& var) {
 }
 
 void websocketLoop( void * pvParameters ){
-  Serial.print("Websocket connection runniong on core: ");
+  Serial.print("Websocket connection running on core: ");
   Serial.println(xPortGetCoreID());
 
   for(;;) {
     ws.cleanupClients();
+    delay(10);
+    if(Serial2.available()>=2) {
+        for(int i = 0; i<2; i++) 
+            dataPlaceholder[i] = Serial2.read();
+        while(Serial2.available()) Serial2.read();
+    }
   } 
 }
 
 void Car::initCar() {
 
-    Serial.begin(9600);
-    Serial2.begin(9600, SERIAL_8N1, RXD2, TXD2);
+    Serial.begin(115200);
+    Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2);
 
     xTaskCreatePinnedToCore(
                     websocketLoop, 

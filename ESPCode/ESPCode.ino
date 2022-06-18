@@ -3,8 +3,9 @@
 Car car("iPhone", "testPassord");
 
 double ntcData;
-double proxData;
-double lineData;
+int proxData;
+int lineData;
+bool linjefolgermodus = false;
 
 void setup() {
     car.initCar();
@@ -12,16 +13,19 @@ void setup() {
 
 void loop() {
 
-    ntcData = car.readData(NTC);
-    sendData(1, ntcData);
+    ntcData = readNTC();
+    sendData(1,ntcData);
 
-    fetchData(LINE);
-    fetchData(PROX);
+    lineData = readLine();
+    sendData(2,lineData);
 
-    double data = readData();
+    proxData = readProx();
+    sendData(3,proxData);
 
-    sendData(2, data[PROX]);
-    sendData(3, data[LINE]);
+    if(linjefolgermodus) {
+        drive(125+lineData, 125-lineData, FORWARD, FORWARD);
+        return;
+    }
 }
 
 void w(bool state) {
@@ -72,6 +76,13 @@ void e(bool state) {
   }
 }
 
-void line(bool state) {};
-void circle(bool state) {};
+void line(bool state) {
+    linjefolgermodus = state;
+    drive(0,0,0,0);
+}; 
+
+void circle(bool state) {
+    if(state) calibrate();
+};
+
 void square(bool state) {};

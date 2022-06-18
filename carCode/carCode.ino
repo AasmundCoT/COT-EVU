@@ -12,6 +12,9 @@ const int IN2 = 16; //Wheel direction 2
 
 const int lineSensorValues[5] = {0,0,0,0,0};
 
+unsigned long prevReadMillis = 0;
+int readPerSec = 10;
+
 Zumo32U4LineSensors lineSensors;
 Zumo32U4Buzzer buzzer;
 Zumo32U4Motors motors;
@@ -53,8 +56,8 @@ void setup() {
   lineSensors.initFiveSensors();
   proxSensors.initFrontSensor();
   
-  Serial1.begin(9600);
-  Serial.begin(9600);
+  Serial1.begin(115200);
+  Serial.begin(115200);
 
   analogWrite(ENA, 0);
   analogWrite(ENB, 0);
@@ -65,6 +68,7 @@ void setup() {
   Serial.println("Setup complete");
 
   drive(0,0,1,1);
+
 }
 
 void loop() {
@@ -91,24 +95,26 @@ void loop() {
         Serial.println();
         drive(data[0], data[1], data[2], data[3]);  
         break;
-
-      case 'p': //Send Front-proximity sine to målinger
-        proxSensors.read();
-        uint8_t leftValue = proxSensors.countsFrontWithLeftLeds();
-        uint8_t rightValue = proxSensors.countsFrontWithRightLeds();
-        Serial1.write('p');
-        Serial1.write(leftValue);
-        Serial1.write(rightValue);
-        break;
-        
-      case 'l': //linjesensorer
-        pos = (int8_t)((lineSensors.readLine(lineSensorValues)-2000)/200);
-        Serial1.write('l');
-        Serial1.write(pos);
-        break;
         
       default:
         break;
     } 
+  }
+
+  if((millis()-prevReadMillis)>(1000/readPerSec)) {
+    proxSensors.read();
+    uint8_t leftValue = proxSensors.countsFrontWithLeftLeds();
+    uint8_t rightValue = proxSensors.countsFrontWithRightLeds();
+    Serial.print("Prox data: ");
+    Serial.print(leftValue+rightValue);
+    Serial.print(" ");
+    Serial1.write(leftValue+rightValue);
+
+    pos = (int8_t)((lineSensors.readLine(lineSensorValues)/20)-100);
+    Serial.print("  Line data: ");
+    Serial.println(pos);
+    Serial1.write(pos);
+
+    prevReadMillis = millis();
   }
 }

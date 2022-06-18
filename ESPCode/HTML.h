@@ -405,7 +405,7 @@ const char index_html[] PROGMEM = R"rawliteral(
     var graphColors = ["#F8C9B5", "#189EFF", "#42D9C8"];
     var fontSize = 10;
 
-    var dataPoints = 50;
+    var dataPoints = 200;
 
     //var graphData = [[0,0,0,0,0,0,0,0,0,0],[1,3,2,4,3,5,4,6,5,7],[1,1,2,3,5,8,13,21,34,25]]; //test
     var graphData = [[],[],[]]
@@ -488,9 +488,9 @@ const char index_html[] PROGMEM = R"rawliteral(
         ctx.fillStyle = 'rgb(61,61,61,0.05)';
         ctx.fill();
 
-        ctx.roundRect(graphLeft+1.5*canvasWidth,(graphBottom-graphTop)/2+2.4*canvasWidth,graphRight-graphLeft-1.5*canvasWidth,0.5*canvasWidth,10);
-        ctx.fillStyle = 'rgb(61,61,61,0.05)';
-        ctx.fill();
+        // ctx.roundRect(graphLeft+1.5*canvasWidth,(graphBottom-graphTop)/2+2.4*canvasWidth,graphRight-graphLeft-1.5*canvasWidth,0.5*canvasWidth,10);
+        // ctx.fillStyle = 'rgb(61,61,61,0.05)';
+        // ctx.fill();
 
         if(activeData.length) {
 
