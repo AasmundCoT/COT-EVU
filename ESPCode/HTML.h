@@ -725,10 +725,10 @@ const char index_html[] PROGMEM = R"rawliteral(
             case "Digit2":
                 if(buttonToggle[1]) {
                     document.getElementsByClassName("toggleBtn1")[0].innerHTML = "radio_button_unchecked";
-                    websocket.send('g');
+                    websocket.send('G');
                 } else {                
                     document.getElementsByClassName("toggleBtn1")[0].innerHTML = "radio_button_checked";
-                    websocket.send('G');
+                    websocket.send('g');
                 }
                 buttonToggle[1] = !buttonToggle[1];
                 break;
@@ -736,10 +736,10 @@ const char index_html[] PROGMEM = R"rawliteral(
             case "Digit3":
                 if(buttonToggle[2]) {
                     document.getElementsByClassName("toggleBtn2")[0].innerHTML = "check_box_outline_blank";
-                    websocket.send('h');
+                    websocket.send('H');
                 } else {                
                     document.getElementsByClassName("toggleBtn2")[0].innerHTML = "check_box";
-                    websocket.send('H');
+                    websocket.send('h');
                 }
                 buttonToggle[2] = !buttonToggle[2];
                 break;

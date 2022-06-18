@@ -23,7 +23,7 @@ void loop() {
     sendData(3,proxData);
 
     if(linjefolgermodus) {
-        drive(125+lineData, 125-lineData, FORWARD, FORWARD);
+        drive(125-lineData, 125+lineData, FORWARD, FORWARD);
         return;
     }
 }

@@ -32,9 +32,9 @@ unsigned long prevDataMillis[3] = {0,0,0};
 int dataPerSec = 10;
 
 unsigned long prevDriveMillis = 0;
-int drivePerSec = 100;
+int drivePerSec = 1000;
 
-TaskHandle_t websocketCore; 
+TaskHandle_t secondCore; 
 
 Car::Car(char* ssid, char* password): ssid{ssid}, password{password} {};
 
@@ -102,6 +102,7 @@ void Car::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
         switch(*(char*)data) {
             case 'f':
+                drivePerSec = 25;
                 line(ON);
                 break;
 
@@ -138,6 +139,7 @@ void Car::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
                 break;
 
             case 'F':
+                drivePerSec = 1000;
                 line(OFF);
                 break;
 
@@ -203,18 +205,9 @@ void Car::initWebSocket() {
     server.addHandler(&ws);
 }
 
-String Car::processor(const String& var) {
-    Serial.println("Data sent!");
-    return String();
-}
-
-void websocketLoop( void * pvParameters ){
-  Serial.print("Websocket connection running on core: ");
-  Serial.println(xPortGetCoreID());
-
+void secondCoreLoop( void * pvParameters ){
   for(;;) {
     ws.cleanupClients();
-    delay(10);
     if(Serial2.available()>=2) {
         for(int i = 0; i<2; i++) 
             dataPlaceholder[i] = Serial2.read();
@@ -229,12 +222,12 @@ void Car::initCar() {
     Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2);
 
     xTaskCreatePinnedToCore(
-                    websocketLoop, 
-                    "websocket",   
+                    secondCoreLoop, 
+                    "secondCore",   
                     10000,     
                     NULL,        
                     1,           
-                    &websocketCore,    
+                    &secondCore,    
                     1);
 
     if(!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
@@ -273,7 +266,7 @@ void Car::initCar() {
 
     // Route for root / web page
     server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-        request->send_P(200, "text/html", index_html, processor);
+        request->send_P(200, "text/html", index_html, NULL);
     });
 
     // Start server
