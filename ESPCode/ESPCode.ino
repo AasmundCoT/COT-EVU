@@ -1,10 +1,11 @@
 #include "Car.h"
 
-Car car("Nestingan_EXT", "Nestingan2019");
+Car car("iPhone", "testPassord");
 
 double ntcData;
-double proxData;
-double lineData;
+int proxData;
+int lineData;
+bool linjefolgermodus = false;
 
 void setup() {
     car.initCar();
@@ -12,13 +13,19 @@ void setup() {
 
 void loop() {
 
-    ntcData = car.readData(NTC);
-    proxData = car.readData(PROX);
-    lineData = car.readData(LINE);
+    ntcData = readNTC();
+    sendData(1,ntcData);
 
-    sendData(1, ntcData);
-    sendData(2, proxData);
-    sendData(3, lineData);
+    lineData = readLine();
+    sendData(2,lineData);
+
+    proxData = readProx();
+    sendData(3,proxData);
+
+    if(linjefolgermodus) {
+        drive(125-lineData, 125+lineData, FORWARD, FORWARD);
+        return;
+    }
 }
 
 void w(bool state) {
@@ -69,6 +76,13 @@ void e(bool state) {
   }
 }
 
-void line(bool state) {};
-void circle(bool state) {};
+void line(bool state) {
+    linjefolgermodus = state;
+    drive(0,0,0,0);
+}; 
+
+void circle(bool state) {
+    if(state) calibrate();
+};
+
 void square(bool state) {};

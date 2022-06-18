@@ -4,9 +4,8 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 
-#define NTC 0
-#define LINE 1
-#define PROX 2
+#define LINE 0
+#define PROX 1
 
 #define UP 0
 #define DOWN 1
@@ -31,15 +30,15 @@ class Car {
         static void initWebSocket();
         static String processor(const String& var);
         void initCar();
-        double readData(int sensor);
 };
 
 double readNTC();
-void fetchLine();
-void fetchProx();
+int readLine();
+int readProx();
 void sendData(int graph, double data);
 
 void drive(int rightSpeed, int leftSpeed, int rightDirection, int leftDirection);
+void calibrate();
 
 void w(bool state);
 void a(bool state);
