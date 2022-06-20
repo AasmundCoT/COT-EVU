@@ -1,6 +1,6 @@
 #include "Car.h"
 
-Car car("iPhone", "testPassord");
+Car car("ruter_cot", "ESP_32_is_best");
 
 double ntcData;
 int proxData;
@@ -79,7 +79,7 @@ void e(bool state) {
 void line(bool state) {
     linjefolgermodus = state;
     drive(0,0,0,0);
-}; 
+};
 
 void circle(bool state) {
     if(state) calibrate();
