@@ -37,7 +37,7 @@ int readLine();
 int readProx();
 void sendData(int graph, double data);
 
-void drive(int rightSpeed, int leftSpeed, int rightDirection, int leftDirection);
+void drive(int leftSpeed, int rightSpeed, int leftDirection, int rightDirection);
 void calibrate();
 
 void w(bool state);

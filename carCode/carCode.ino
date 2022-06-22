@@ -12,7 +12,7 @@ void loop() {
 
 void w(bool state) {
   if(state==DOWN) {
-    drive(200,200,FORWARD,FORWARD);
+    drive(50,50,FORWARD,FORWARD);
   }else if(state==UP) {
     drive(0,0,FORWARD,FORWARD);
   }

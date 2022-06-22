@@ -7,6 +7,8 @@ int proxData;
 int lineData;
 bool linjefolgermodus = false;
 
+int speed = 100;
+
 void setup() {
     car.initCar();
 }
@@ -23,14 +25,14 @@ void loop() {
     sendData(3,proxData);
 
     if(linjefolgermodus) {
-        drive(125-lineData, 125+lineData, FORWARD, FORWARD);
+        drive(speed+floor(lineData/1.2), speed-floor(lineData/1.2), FORWARD, FORWARD);
         return;
     }
 }
 
 void w(bool state) {
   if(state==DOWN) {
-    drive(200,200,FORWARD,FORWARD);
+    drive(speed,speed,FORWARD,FORWARD);
   }else if(state==UP) {
     drive(0,0,FORWARD,FORWARD);
   }
@@ -38,15 +40,16 @@ void w(bool state) {
 
 void a(bool state) {
   if(state==DOWN) {
-    drive(200,200,BACKWARD,FORWARD);
+    drive(speed,speed,BACKWARD,FORWARD);
   }else if(state==UP) {
     drive(0,0,FORWARD,FORWARD);
   }
+  Serial.println('a');
 }
 
 void s(bool state) {
   if(state==DOWN) {
-    drive(200,200,BACKWARD,BACKWARD);
+    drive(speed,speed,BACKWARD,BACKWARD);
   }else if(state==UP) {
     drive(0,0,FORWARD,FORWARD);
   }
@@ -54,7 +57,7 @@ void s(bool state) {
 
 void d(bool state) {
   if(state==DOWN) {
-    drive(200,200,FORWARD,BACKWARD);
+    drive(speed,speed,FORWARD,BACKWARD);
   }else if(state==UP) {
     drive(0,0,FORWARD,FORWARD);
   }
@@ -62,7 +65,7 @@ void d(bool state) {
 
 void q(bool state) {
   if(state==DOWN) {
-    drive(200,0,FORWARD,FORWARD);
+    drive(0,speed,FORWARD,FORWARD);
   }else if(state==UP) {
     drive(0,0,FORWARD,FORWARD);
   }
@@ -70,7 +73,7 @@ void q(bool state) {
 
 void e(bool state) {
   if(state==DOWN) {
-    drive(0,200,FORWARD,FORWARD);
+    drive(speed,0,FORWARD,FORWARD);
   }else if(state==UP) {
     drive(0,0,FORWARD,FORWARD);
   }
@@ -78,7 +81,7 @@ void e(bool state) {
 
 void line(bool state) {
     linjefolgermodus = state;
-    drive(0,0,0,0);
+    drive(0,0,FORWARD,FORWARD);
 };
 
 void circle(bool state) {

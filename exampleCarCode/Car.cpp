@@ -47,10 +47,10 @@ void writeDisplay(String str, int line) {
 void drive(int leftSpeed, int rightSpeed, int leftDirection, int rightDirection) {
     if((millis()-prevDriveMillis)<(1000/drivePerSec)&&(leftSpeed||rightSpeed)) return;
     Serial2.write('k');
-    Serial2.write(rightSpeed);
     Serial2.write(leftSpeed);
-    Serial2.write(rightDirection);
+    Serial2.write(rightSpeed);
     Serial2.write(leftDirection);
+    Serial2.write(rightDirection);
     prevDriveMillis = millis();
 }
 
