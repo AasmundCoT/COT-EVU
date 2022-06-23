@@ -48,7 +48,7 @@ void calibrateLineSensors() //From sketch
 void drive(uint8_t ENA_val, uint8_t ENB_val, uint8_t l_dir, uint8_t r_dir) {
   //Eks: 150, 60, 1, 1 => Venstre motor: 160/255. H Motor: 60/255. V: fram. H: fram.
 
-  if(abs(ENA_val-100)>100) { ENA_val=100+100*(abs(ENA_val-100)/(data[1]-100)); }
+  if(abs(ENA_val-100)>100) { ENA_val=100+100*(abs(ENA_val-100)/(ENA_val-100)); }
   if(abs(ENB_val-100)>100) { ENB_val=100+100*(abs(ENB_val-100)/(ENB_val-100)); }
   //Serial.println(ENA_val);
   //Serial.println(ENB_val);

@@ -6,11 +6,15 @@ void setup() {
     car.initCar();
 }
 
-void loop() {
+//lag variabler her
+
+void loop() { //ikke fjern denne linjen!
+  //skriv kode for linjefølger her
 
 }
 
-void w(bool state) {
+//dette er koden for kjøre framover
+void w(bool state) { //ikke fjern denne linjen!
   if(state==DOWN) {
     drive(50,50,FORWARD,FORWARD);
   }else if(state==UP) {
@@ -18,12 +22,43 @@ void w(bool state) {
   }
 }
 
-void a(bool state) {}
-void s(bool state) {}
-void d(bool state) {}
-void q(bool state) {}
-void e(bool state) {}
+void a(bool state) { //ikke fjern denne linjen!
+  //skriv kode her
 
-void line(bool state) {}
-void circle(bool state) {}
-void square(bool state) {}
+}
+
+void s(bool state) { //ikke fjern denne linjen!
+  //skriv kode her
+
+}
+
+void d(bool state) { //ikke fjern denne linjen!
+  //skriv kode her
+
+}
+
+void q(bool state) { //ikke fjern denne linjen!
+  //skriv kode her
+
+}
+
+void e(bool state) { //ikke fjern denne linjen!
+  //skriv kode her
+
+}
+
+
+void line(bool state) { //ikke fjern denne linjen!
+  //skriv kode her
+
+}
+
+void circle(bool state) { //ikke fjern denne linjen!
+  //skriv kode her
+
+}
+
+void square(bool state) { //ikke fjern denne linjen!
+  //skriv kode her
+
+}

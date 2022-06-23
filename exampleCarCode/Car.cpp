@@ -34,6 +34,8 @@ int dataPerSec = 10;
 unsigned long prevDriveMillis = 0;
 int drivePerSec = 1000;
 
+bool isCalibrated = false;
+
 TaskHandle_t secondCore; 
 
 Car::Car(char* ssid, char* password): ssid{ssid}, password{password} {};
@@ -46,6 +48,8 @@ void writeDisplay(String str, int line) {
 
 void drive(int leftSpeed, int rightSpeed, int leftDirection, int rightDirection) {
     if((millis()-prevDriveMillis)<(1000/drivePerSec)&&(leftSpeed||rightSpeed)) return;
+    if(abs(leftSpeed-100)>100) { leftSpeed=100+100*(abs(leftSpeed-100)/(leftSpeed-100)); }
+    if(abs(rightSpeed-100)>100) { rightSpeed=100+100*(abs(rightSpeed-100)/(rightSpeed-100)); }
     Serial2.write('k');
     Serial2.write(leftSpeed);
     Serial2.write(rightSpeed);
@@ -89,7 +93,10 @@ int readLine() {
 }
 
 void calibrate() {
-    Serial2.write('c');
+    if(!isCalibrated) {
+        Serial2.write('c');
+        isCalibrated = true;
+    }
 }
 
 void Car::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {

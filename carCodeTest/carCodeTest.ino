@@ -7,7 +7,7 @@ int proxData;
 int lineData;
 bool linjefolgermodus = false;
 
-int speed = 120;
+int speed = 100;
 
 void setup() {
     car.initCar();
@@ -25,7 +25,7 @@ void loop() {
     sendData(3,proxData);
 
     if(linjefolgermodus) {
-        drive(speed+floor(lineData/1.2), speed-floor(lineData/1.2), FORWARD, FORWARD);
+        drive(50+lineData, 50-lineData, FORWARD, FORWARD);
         return;
     }
 }
