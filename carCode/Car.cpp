@@ -15,7 +15,7 @@ AsyncWebServer server(port);
 AsyncWebSocket ws("/ws");
 
 #define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
+#define SCREEN_HEIGHT 614
 
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 

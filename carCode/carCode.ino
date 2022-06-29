@@ -19,7 +19,7 @@ void loop() { //ikke fjern denne linjen!
   
   if(linemode == true) {
     //skriv linjefølger-kode her
-    drive(50+readLine()/2, 50-readLine()/2);
+    drive(50-readLine()/2, 50+readLine()/2);
   }
 }
 

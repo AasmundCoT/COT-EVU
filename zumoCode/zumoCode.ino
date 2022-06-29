@@ -136,7 +136,7 @@ void loop() {
     int8_t rightValue = proxSensors.countsFrontWithRightLeds();
     Serial1.write(leftValue+rightValue);
 
-    pos = (int8_t)((lineSensors.readLine(lineSensorValues)/20)-100);
+    pos = (int8_t)((lineSensors.readLine(lineSensorValues,QTR_EMITTERS_ON,1)/20)-100);
     Serial.println(pos);
     Serial1.write(pos);
 
