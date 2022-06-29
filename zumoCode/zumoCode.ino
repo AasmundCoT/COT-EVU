@@ -137,7 +137,6 @@ void loop() {
     Serial1.write(leftValue+rightValue);
 
     pos = (int8_t)((lineSensors.readLine(lineSensorValues,QTR_EMITTERS_ON,1)/20)-100);
-    Serial.println(pos);
     Serial1.write(pos);
 
     prevReadMillis = millis();

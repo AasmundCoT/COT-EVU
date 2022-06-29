@@ -19,7 +19,7 @@ void loop() { //ikke fjern denne linjen!
   
   if(linemode == true) {
     //skriv linjefølger-kode her
-    drive(50-readLine()/2, 50+readLine()/2);
+    drive(50+readLine()/2, 50-readLine()/2);
   }
 }
 
@@ -86,6 +86,7 @@ void q(bool button) { //ikke fjern denne linjen!
 void tast1(bool button) { //ikke fjern denne linjen!
   //skriv kode her
   //bruk denne buttonen til å skru på linjeModus og bruke calibrate()
+  if(!button) return;
   calibrate();
   linemode = !linemode; 
   drive(0,0);

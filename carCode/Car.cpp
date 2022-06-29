@@ -253,6 +253,7 @@ void Car::initCar() {
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(WHITE);
+    Serial.println("Skjerm klar");
     writeDisplay("Skjerm klar", 1);
 
     // Connect to Wi-Fi
