@@ -9,8 +9,6 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-// Create AsyncWebServer object on port 80
-
 #define port 80
 
 AsyncWebServer server(port);
@@ -29,10 +27,10 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 int8_t dataPlaceholder[2] = {0,0};
 
 unsigned long prevDataMillis[3] = {0,0,0};
-int dataPerSec = 10;
+int dataPerSec = 25;
 
 unsigned long prevDriveMillis = 0;
-int drivePerSec = 1000;
+int drivePerSec = 50;
 
 bool isCalibrated = false;
 
@@ -46,15 +44,26 @@ void writeDisplay(String str, int line) {
     display.display();
 }
 
-void drive(int leftSpeed, int rightSpeed, int leftDirection, int rightDirection) {
+void drive(int leftSpeed, int rightSpeed) {
     if((millis()-prevDriveMillis)<(1000/drivePerSec)&&(leftSpeed||rightSpeed)) return;
-    if(abs(leftSpeed-100)>100) { leftSpeed=100+100*(abs(leftSpeed-100)/(leftSpeed-100)); }
-    if(abs(rightSpeed-100)>100) { rightSpeed=100+100*(abs(rightSpeed-100)/(rightSpeed-100)); }
+
+    if(leftSpeed > 100){
+      leftSpeed = 100;
+    }else if(leftSpeed < -100){
+      leftSpeed = -100;
+    }
+
+    if(rightSpeed > 100){
+      rightSpeed = 100;
+    }else if(rightSpeed < -100){
+      rightSpeed = -100;
+    }
+
+    //Sender til bilen
     Serial2.write('k');
     Serial2.write(leftSpeed);
     Serial2.write(rightSpeed);
-    Serial2.write(leftDirection);
-    Serial2.write(rightDirection);
+    
     prevDriveMillis = millis();
 }
 
@@ -109,16 +118,15 @@ void Car::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
         switch(*(char*)data) {
             case 'f':
-                drivePerSec = 25;
-                line(ON);
+                tast1(DOWN);
                 break;
 
             case 'g':
-                circle(ON);
+                tast2(DOWN);
                 break;
 
             case 'h':
-                square(ON);
+                tast3(DOWN);
                 break;
 
             case 'q':
@@ -146,16 +154,15 @@ void Car::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
                 break;
 
             case 'F':
-                drivePerSec = 1000;
-                line(OFF);
+                tast1(UP);
                 break;
 
             case 'G':
-                circle(OFF);
+                tast2(UP);
                 break;
 
             case 'H':
-                square(OFF);
+                tast3(UP);
                 break;
 
             case 'Q':
@@ -216,7 +223,7 @@ void secondCoreLoop( void * pvParameters ){
   for(;;) {
     ws.cleanupClients();
     if(Serial2.available()>=2) {
-        for(int i = 0; i<2; i++) 
+        for(int i = 0; i<2; i++)
             dataPlaceholder[i] = Serial2.read();
         while(Serial2.available()) Serial2.read();
     }

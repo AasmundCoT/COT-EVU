@@ -1,89 +1,109 @@
-//Sebs start på en zumo-kode.
-
 #include <Zumo32U4.h>
 
 //https://www.pololu.com/docs/0J63
-//TODO: imu, 
 
-const int ENB = 9; //Motor 1 right
-const int IN2 = 15; //Wheel direction 1
-const int ENA = 10; //Motor 2 left
-const int IN1 = 16; //Wheel direction 2
+const int ENA = 10; //Motor 1
+const int IN1 = 16; //Wheel direction 1
+const int ENB = 9; //Motor 2
+const int IN2 = 15; //Wheel direction 2
+
+int actual_l_val = 0;
+int actual_r_val = 0;
+
+int ideal_l_val = 0;
+int ideal_r_val = 0;
+
+int acc_const = 25;
+int accPerSec = 200;
+unsigned long prevAccMillis = 0;
 
 const int lineSensorValues[5] = {0,0,0,0,0};
 
+const unsigned int microSecPerByte = ceil(10.0 / 115200.0 * 100000);
+
 unsigned long prevReadMillis = 0;
-int readPerSec = 10;
+int readPerSec = 25;
 
 Zumo32U4LineSensors lineSensors;
 Zumo32U4Buzzer buzzer;
 Zumo32U4Motors motors;
 Zumo32U4ProximitySensors proxSensors;
 
-int8_t data[4];
+int8_t data[2];
 int8_t pos;
 
-#define FORWARD 1
-#define BACKWARD 0
-
-void calibrateLineSensors() //From sketch
-{
-  for(uint8_t i = 0; i < 120; i++)
-  {
-    if (i > 30 && i <= 90)
-    {
-      drive(200,200,BACKWARD,FORWARD);
-    }
-    else
-    {
-      drive(200,200,FORWARD,BACKWARD);
+void calibrateLineSensors() {
+  for(uint8_t i = 0; i < 120; i++) {
+    if (i > 30 && i <= 90) {
+      drive(-100,100);
+    } else {
+      drive(100,-100);
     }
 
     lineSensors.calibrate();
   }
-  drive(0,0,FORWARD,FORWARD);
+  drive(0,0);
 }
 
-//Turn the car left or right (turns with the frontwheels)
-void drive(uint8_t ENA_val, uint8_t ENB_val, uint8_t l_dir, uint8_t r_dir) {
-  //Eks: 150, 60, 1, 1 => Venstre motor: 160/255. H Motor: 60/255. V: fram. H: fram.
+void drive(int8_t l_val, int8_t r_val) {
+  digitalWrite(IN1, l_val>0?0:1);
+  digitalWrite(IN2, r_val>0?0:1);
+  
+  l_val = 2*abs(l_val);
+  r_val = 2*abs(r_val);
+  
+  analogWrite(ENA, l_val);
+  analogWrite(ENB, r_val);
+}
 
-  if(abs(ENA_val-100)>100) { ENA_val=100+100*(abs(ENA_val-100)/(ENA_val-100)); }
-  if(abs(ENB_val-100)>100) { ENB_val=100+100*(abs(ENB_val-100)/(ENB_val-100)); }
-  //Serial.println(ENA_val);
-  //Serial.println(ENB_val);
-  
-  analogWrite(ENA, ENA_val);
-  analogWrite(ENB, ENB_val);
-  
-  digitalWrite(IN1, l_dir==0);
-  digitalWrite(IN2, r_dir==0);
+void accelerate(int8_t l_val, int8_t r_val){
+  ideal_r_val = r_val;
+  ideal_l_val = l_val;
 }
 
 void setup() {
+  drive(0,0);
+  
   lineSensors.initFiveSensors();
   proxSensors.initFrontSensor();
   
   Serial1.begin(115200);
   Serial.begin(115200);
 
-  analogWrite(ENA, 0);
-  analogWrite(ENB, 0);
-
   delay(100);
-
   buzzer.play(">g32>>>>>c32");
-  Serial.println("Setup complete");
-
-  drive(0,0,1,1);
-
 }
 
 void loop() {
-  delay(10);
+  if((millis()-prevAccMillis)>(1000/accPerSec)) {
 
+    if(actual_l_val < ideal_l_val) {
+      actual_l_val += acc_const;
+    }
+    if(actual_r_val < ideal_r_val) {
+      actual_r_val += acc_const;
+    }
+    
+    if(actual_l_val > ideal_l_val) {
+      actual_l_val -= acc_const;
+    }
+    if(actual_r_val > ideal_r_val) {
+      actual_r_val -= acc_const;
+    }
+
+    if(abs(actual_r_val - ideal_r_val) <= acc_const) {
+      actual_r_val = ideal_r_val;
+    }
+    if(abs(actual_l_val - ideal_l_val) <= acc_const) {
+      actual_l_val = ideal_l_val;
+    }
+    
+    drive(actual_l_val, actual_r_val);
+    
+    prevAccMillis = millis();
+  }
+  
   while(Serial1.available()) {
-    delay(20);
     char received = (char)Serial1.read();
     //Serial.print("recieved command: ");
     //Serial.println(received); //Print data to Serial Monitor 
@@ -93,15 +113,16 @@ void loop() {
         calibrateLineSensors();
         break;
 
-      case 'k': //Kjør!        
-        for(int i = 0; i < 4; i++){
+      case 'k': //Kjør!     
+        delayMicroseconds(microSecPerByte*2*10);   
+        for(int i = 0; i < 2; i++){
           if(Serial1.available()){
             data[i] = Serial1.read();
             //Serial.print(data[i]);
           }
         }
-        Serial.println();
-        drive(data[0], data[1], data[2], data[3]);  
+        while(Serial1.available()) Serial1.read();
+        accelerate(data[0], data[1]);  
         break;
         
       default:
@@ -111,16 +132,12 @@ void loop() {
 
   if((millis()-prevReadMillis)>(1000/readPerSec)) {
     proxSensors.read();
-    uint8_t leftValue = proxSensors.countsFrontWithLeftLeds();
-    uint8_t rightValue = proxSensors.countsFrontWithRightLeds();
-    //Serial.print("Prox data: ");
-    //Serial.print(leftValue+rightValue);
-    //Serial.print(" ");
+    int8_t leftValue = proxSensors.countsFrontWithLeftLeds();
+    int8_t rightValue = proxSensors.countsFrontWithRightLeds();
     Serial1.write(leftValue+rightValue);
 
-    pos = (int8_t)((lineSensors.readLine(lineSensorValues,QTR_EMITTERS_ON,1)/20)-100);
-    //Serial.print("  Line data: ");
-    //Serial.println(pos);
+    pos = (int8_t)((lineSensors.readLine(lineSensorValues)/20)-100);
+    Serial.println(pos);
     Serial1.write(pos);
 
     prevReadMillis = millis();

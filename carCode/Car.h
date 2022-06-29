@@ -10,12 +10,6 @@
 #define UP 0
 #define DOWN 1
 
-#define OFF 0
-#define ON 1
-
-#define BACKWARD 0
-#define FORWARD 1
-
 class Car {
     private:
         const char* ssid;
@@ -37,16 +31,16 @@ int readLine();
 int readProx();
 void sendData(int graph, double data);
 
-void drive(int leftSpeed, int rightSpeed, int leftDirection, int rightDirection);
+void drive(int leftSpeed, int rightSpeed);
 void calibrate();
 
-void w(bool state);
-void a(bool state);
-void s(bool state);
-void d(bool state);
-void q(bool state);
-void e(bool state);
+void w(bool knapp);
+void a(bool knapp);
+void s(bool knapp);
+void d(bool knapp);
+void q(bool knapp);
+void e(bool knapp);
 
-void line(bool state);
-void circle(bool state);
-void square(bool state);
+void tast1(bool knapp);
+void tast2(bool knapp);
+void tast3(bool knapp);
