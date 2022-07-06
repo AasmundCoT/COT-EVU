@@ -17,12 +17,15 @@ int acc_const = 25;
 int accPerSec = 200;
 unsigned long prevAccMillis = 0;
 
+int maxSpeed = 175;
+bool isCalibrated = false;
+
 const int lineSensorValues[5] = {0,0,0,0,0};
 
 const unsigned int microSecPerByte = ceil(10.0 / 115200.0 * 100000);
 
 unsigned long prevReadMillis = 0;
-int readPerSec = 25;
+int readPerSec = 25; //må være mindre enn 71, da hver read tar 13-14ms
 
 Zumo32U4LineSensors lineSensors;
 Zumo32U4Buzzer buzzer;
@@ -39,19 +42,19 @@ void calibrateLineSensors() {
     } else {
       drive(100,-100);
     }
-
     lineSensors.calibrate();
   }
+
   drive(0,0);
 }
 
 void drive(int8_t l_val, int8_t r_val) {
   digitalWrite(IN1, l_val>0?0:1);
   digitalWrite(IN2, r_val>0?0:1);
-  
-  l_val = 2*abs(l_val);
-  r_val = 2*abs(r_val);
-  
+
+  l_val = (maxSpeed/100)*abs(l_val);
+  r_val = (maxSpeed/100)*abs(r_val);
+
   analogWrite(ENA, l_val);
   analogWrite(ENB, r_val);
 }
@@ -63,10 +66,10 @@ void accelerate(int8_t l_val, int8_t r_val){
 
 void setup() {
   drive(0,0);
-  
+
   lineSensors.initFiveSensors();
   proxSensors.initFrontSensor();
-  
+
   Serial1.begin(115200);
   Serial.begin(115200);
 
@@ -83,7 +86,7 @@ void loop() {
     if(actual_r_val < ideal_r_val) {
       actual_r_val += acc_const;
     }
-    
+
     if(actual_l_val > ideal_l_val) {
       actual_l_val -= acc_const;
     }
@@ -97,48 +100,67 @@ void loop() {
     if(abs(actual_l_val - ideal_l_val) <= acc_const) {
       actual_l_val = ideal_l_val;
     }
-    
+
     drive(actual_l_val, actual_r_val);
-    
+
     prevAccMillis = millis();
   }
-  
-  while(Serial1.available()) {
+
+  if(Serial1.available()) {
     char received = (char)Serial1.read();
     //Serial.print("recieved command: ");
-    //Serial.println(received); //Print data to Serial Monitor 
+    //Serial.println(received); //Print data to Serial Monitor
 
     switch(received) {
       case 'c': //kalibrer linjefølger
-        calibrateLineSensors();
+        Serial.println('c');
+        if(!isCalibrated) {
+          calibrateLineSensors();
+          isCalibrated = true;
+        }
         break;
 
-      case 'k': //Kjør!     
-        delayMicroseconds(microSecPerByte*2*10);   
+      case 'k': //Kjør!
+        while(Serial1.available() < 2){
+          delayMicroseconds(microSecPerByte);
+        }
+
         for(int i = 0; i < 2; i++){
           if(Serial1.available()){
             data[i] = Serial1.read();
             //Serial.print(data[i]);
           }
         }
-        while(Serial1.available()) Serial1.read();
-        accelerate(data[0], data[1]);  
+
+        accelerate(data[0], data[1]);
         break;
-        
+
       default:
         break;
-    } 
+    }
+
+    if(Serial1.available() >= 20){
+      while(Serial1.available() > 10) {
+        Serial1.read();
+      }
+    }
   }
 
   if((millis()-prevReadMillis)>(1000/readPerSec)) {
+    //Dette tar 13-14ms
+
+    prevReadMillis = millis();
+
     proxSensors.read();
     int8_t leftValue = proxSensors.countsFrontWithLeftLeds();
     int8_t rightValue = proxSensors.countsFrontWithRightLeds();
     Serial1.write(leftValue+rightValue);
 
+    //pos = (int8_t)((lineSensors.readLine(lineSensorValues)/20)-100); //svart linje
     pos = (int8_t)((lineSensors.readLine(lineSensorValues,QTR_EMITTERS_ON,1)/20)-100);
+    //Serial.println(pos);
     Serial1.write(pos);
 
-    prevReadMillis = millis();
+    //Serial.println(prevReadMillis);
   }
 }

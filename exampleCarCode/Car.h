@@ -32,7 +32,6 @@ int readProx();
 void sendData(int graph, double data);
 
 void drive(int leftSpeed, int rightSpeed);
-void calibrate();
 
 void w(bool knapp);
 void a(bool knapp);

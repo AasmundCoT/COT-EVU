@@ -27,7 +27,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 int8_t dataPlaceholder[2] = {0,0};
 
 unsigned long prevDataMillis[3] = {0,0,0};
-int dataPerSec = 25;
+int dataPerSec = 5;
 
 unsigned long prevDriveMillis = 0;
 int drivePerSec = 50;
@@ -98,14 +98,10 @@ int readProx() {
 }
 
 int readLine() {
-    return dataPlaceholder[1];
-}
-
-void calibrate() {
     if(!isCalibrated) {
         Serial2.write('c');
-        isCalibrated = true;
     }
+    return dataPlaceholder[1];
 }
 
 void Car::handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {

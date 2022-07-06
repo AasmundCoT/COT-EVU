@@ -25,6 +25,12 @@ const char index_html[] PROGMEM = R"rawliteral(
         </head>
     <body>
 
+        <div style="visibility:hidden;position:absolute;left:10px;top:0px;z-index:1;">
+            <p class="dataInterval">0</p>
+            <p class="dataInterval">0</p>
+            <p class="dataInterval">0</p>
+        </div>
+
         <div id="mainContainer">
 
             <div class="swiper mySwiper">
@@ -151,7 +157,7 @@ const char index_html[] PROGMEM = R"rawliteral(
             <div class="outerButtonContainer">
                 <div class="buttonContainerAction">
                     <div class="btn actionBtn Digit1">
-                        <svg class="material-symbols-rounded toggleBtn1 toggle Digit1" xmlns="http://www.w3.org/2000/svg" height="48" width="48"><path class="Digit1" d="M6 40.95q-1.15 0-1.675-.975Q3.8 39 4.4 38L22.45 9.25q.6-.9 1.6-.9t1.6.9L43.6 38q.55 1 .05 1.975-.5.975-1.65.975Zm3.45-3.85h29.1l-14.5-23.05Zm14.6-11.8Z"/></svg>
+                        <svg class="material-symbols-rounded toggleBtn1 toggle Digit1" xmlns="http://www.w3.org/2000/svg" height="48" width="48"><path class="Digit1" d="M5.95 41.25q-1.4 0-2.05-1.225Q3.25 38.8 4 37.6L22.1 8.8q.65-1.15 1.95-1.15 1.3 0 1.95 1.15l18 28.8q.7 1.2.075 2.425-.625 1.225-2.025 1.225Zm4.2-4.7h27.7L24.05 14.6Zm13.9-11.25Z"/></svg>
                     </div>
                     <div class="btn actionBtn Digit2">
                         <svg class="material-symbols-rounded toggleBtn1 toggle Digit2" xmlns="http://www.w3.org/2000/svg" height="48" width="48"><path class="Digit2" d="M24 45.25Q19.6 45.25 15.725 43.6Q11.85 41.95 8.95 39.05Q6.05 36.15 4.4 32.3Q2.75 28.45 2.75 24Q2.75 19.55 4.4 15.675Q6.05 11.8 8.95 8.925Q11.85 6.05 15.7 4.375Q19.55 2.7 24 2.7Q28.45 2.7 32.325 4.375Q36.2 6.05 39.075 8.925Q41.95 11.8 43.625 15.675Q45.3 19.55 45.3 24Q45.3 28.45 43.625 32.3Q41.95 36.15 39.075 39.025Q36.2 41.9 32.325 43.575Q28.45 45.25 24 45.25ZM24 24Q24 24 24 24Q24 24 24 24Q24 24 24 24Q24 24 24 24Q24 24 24 24Q24 24 24 24Q24 24 24 24Q24 24 24 24ZM24 40.55Q30.95 40.55 35.75 35.725Q40.55 30.9 40.55 24Q40.55 17.05 35.75 12.25Q30.95 7.45 24.05 7.45Q17.1 7.45 12.275 12.25Q7.45 17.05 7.45 23.95Q7.45 30.9 12.275 35.725Q17.1 40.55 24 40.55Z"/></svg>
@@ -637,7 +643,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         var ctx = graph.getContext('2d');
 
         var keyToggle = true;
-        var buttonToggle = [false, false, false];
+        var buttonToggle = [false, false, false, false, false, false, false, false, false];
         var graphToggle = [false, false, false];
         var graphColors = ["#4284E6","#FBAD39","#E55E97"];
         var fontSize = 10;
@@ -646,6 +652,12 @@ const char index_html[] PROGMEM = R"rawliteral(
 
         //var graphData = [[0,0,0,0,0,0,0,0,0,0],[1,3,2,4,3,5,4,6,5,7],[1,1,2,3,5,8,13,21,34,25]]; //test
         var graphData = [[],[],[]]
+
+        var lastDataTime = [new Date(), new Date(), new Date()];
+        var currentDataTime = [0,0,0];
+        var dataIntervals = [0,0,0];
+
+        var dataIntervalContainers = document.getElementsByClassName("dataInterval");
 
         for(let i = 0; i<3; i++) {
             for(let j = 0; j<dataPoints; j++) {
@@ -814,6 +826,12 @@ const char index_html[] PROGMEM = R"rawliteral(
             var data = parseFloat(newData.substring(1));
             graphData[index].shift();
             graphData[index].push(data);
+            currentDataTime[index] = new Date();
+            dataIntervals[index] = Math.round((currentDataTime[index].getTime()-lastDataTime[index])/10)/100;
+            lastDataTime[index] = currentDataTime[index].getTime();
+            for(let i = 0; i<dataIntervalContainers.length; i++) {
+                dataIntervalContainers[i].innerHTML = dataIntervals[i];
+            }
         }
 
         function toggleKeys() {
@@ -896,40 +914,68 @@ const char index_html[] PROGMEM = R"rawliteral(
 
             switch (btn) {
                 case "Digit1":
-                    websocket.send('f');
+                    if(!buttonToggle[0]) {
+                      websocket.send('f');
+                      buttonToggle[0] = true;
+                    }
                     break;
 
                 case "Digit2":
-                    websocket.send('g');
+                  if(!buttonToggle[1]) {
+                      websocket.send('g');
+                      buttonToggle[1] = true;
+                    }
                     break;
 
                 case "Digit3":
-                    websocket.send('h');
+                    if(!buttonToggle[2]) {
+                      websocket.send('h');
+                      buttonToggle[2] = true;
+                    }
                     break;
 
                 case "KeyQ":
-                    websocket.send('q');
+                  if(!buttonToggle[3]) {
+                      websocket.send('q');
+                      buttonToggle[3] = true;
+                    }
                     break;
 
                 case "KeyW":
-                    websocket.send('w');
+                    if(!buttonToggle[4]) {
+                      websocket.send('w');
+                      buttonToggle[4] = true;
+                    }
                     break;
 
                 case "KeyE":
-                    websocket.send('e');
+                    if(!buttonToggle[5]) {
+                      websocket.send('e');
+                      buttonToggle[5] = true;
+                    }
                     break;
 
                 case "KeyA":
-                    websocket.send('a');
+                    if(!buttonToggle[6]) {
+                      websocket.send('a');
+                      buttonToggle[6] = true;
+                    } 
                     break;
 
                 case "KeyS":
-                    websocket.send('s');;
+                    if(!buttonToggle[7]) {
+                      websocket.send('s');
+                      buttonToggle[7] = true;
+                    }
                     break;
 
                 case "KeyD":
-                    websocket.send('d')
+                    if(!buttonToggle[8]) {
+                      websocket.send('d');
+                      buttonToggle[8] = true;
+                    }
                     break;
+
 
                 default:
                     break;
@@ -962,39 +1008,66 @@ const char index_html[] PROGMEM = R"rawliteral(
 
             switch (btn) {
                 case "Digit1":
-                    websocket.send('F');
+                    if(buttonToggle[0]) {
+                      websocket.send('F');
+                      buttonToggle[0] = false;
+                    }
                     break;
 
                 case "Digit2":
-                    websocket.send('G')
+                    if(buttonToggle[1]) {
+                      websocket.send('G');
+                      buttonToggle[1] = false;
+                    }
                     break;
 
                 case "Digit3":
-                    websocket.send('H');
+                    if(buttonToggle[2]) {
+                      websocket.send('H');
+                      buttonToggle[2] = false;
+                    } 
                     break;
 
                 case "KeyQ":
-                    websocket.send('Q');
+                    if(buttonToggle[3]) {
+                      websocket.send('Q');
+                      buttonToggle[3] = false;
+                    }
                     break;
 
                 case "KeyW":
-                    websocket.send('W');
+                    if(buttonToggle[4]) {
+                      websocket.send('W');
+                      buttonToggle[4] = false;
+                    }
                     break;
 
                 case "KeyE":
-                    websocket.send('E');
+                    if(buttonToggle[5]) {
+                      websocket.send('E');
+                      buttonToggle[5] = false;
+                    }
                     break;
 
                 case "KeyA":
-                    websocket.send('A');
+                    if(buttonToggle[6]) {
+                      websocket.send('A');
+                      buttonToggle[6] = false;
+                    }
                     break;
 
                 case "KeyS":
-                    websocket.send('S');
+                    if(buttonToggle[7]) {
+                      websocket.send('S');
+                      buttonToggle[7] = false;
+                    }
                     break;
 
                 case "KeyD":
-                    websocket.send('D');
+                    if(buttonToggle[8]) {
+                      websocket.send('D');
+                      buttonToggle[8] = false;
+                    }
                     break;
 
                 default:
@@ -1006,5 +1079,4 @@ const char index_html[] PROGMEM = R"rawliteral(
     </script>
 
 </html>
-
 )rawliteral";

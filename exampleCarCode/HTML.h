@@ -1,3 +1,4 @@
+const char index_html[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -821,7 +822,6 @@
         }
 
         function updateData(newData) {
-            if(isNaN(newData)) return;
             var index = parseInt(newData.charAt(0))-1;
             var data = parseFloat(newData.substring(1));
             graphData[index].shift();
@@ -1079,3 +1079,4 @@
     </script>
 
 </html>
+)rawliteral";
