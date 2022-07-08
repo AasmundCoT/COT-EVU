@@ -822,6 +822,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         }
 
         function updateData(newData) {
+            if(isNaN(newData)) return;
             var index = parseInt(newData.charAt(0))-1;
             var data = parseFloat(newData.substring(1));
             graphData[index].shift();
@@ -852,7 +853,7 @@ const char index_html[] PROGMEM = R"rawliteral(
 
         function initWebSocket() {
             console.log('Trying to open a WebSocket connection...');
-            websocket = new WebSocket(gateway);
+            websocket = new WebSocket(gateway); 
             websocket.onopen    = onOpen;
             websocket.onclose   = onClose;
             websocket.onmessage = onMessage;
@@ -868,6 +869,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         }
 
         function onMessage(event) {
+            websocket.send('ACKNOWLEDGE BYTES');
             updateData(event.data);
         }
 

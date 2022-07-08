@@ -868,6 +868,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         }
 
         function onMessage(event) {
+            websocket.send(' ');
             updateData(event.data);
         }
 

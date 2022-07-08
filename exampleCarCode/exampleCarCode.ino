@@ -101,7 +101,8 @@ void triangle(bool button) { //ikke fjern denne linjen!
   //skriv kode her
   if(!button) return;
   linemode = !linemode; 
-  drive(0,0);
+  leftSpeed = 0;
+  rightSpeed = 0;
 }
 
 void circle(bool button) { //ikke fjern denne linjen!

@@ -20,17 +20,31 @@ unsigned long prevAccMillis = 0;
 int maxSpeed = 175;
 bool isCalibrated = false;
 
+int encoderValLeft, encoderValRight;
+float stallThresholdLeft = 100;
+float stallThresholdRight = 100;
+
+bool prevEncoderVals[3] = {0,0,0};
+bool emergancyStop = false;
+
 const int lineSensorValues[5] = {0,0,0,0,0};
 
 const unsigned int microSecPerByte = ceil(10.0 / 115200.0 * 100000);
 
+unsigned long lastSpeedChange = 0;
+int speedChangePerSec = 2;
+
 unsigned long prevReadMillis = 0;
 int readPerSec = 25; //må være mindre enn 71, da hver read tar 13-14ms
+
+unsigned long prevStallMillis = 0;
+int stallPerSec = 4;
 
 Zumo32U4LineSensors lineSensors;
 Zumo32U4Buzzer buzzer;
 Zumo32U4Motors motors;
 Zumo32U4ProximitySensors proxSensors;
+Zumo32U4Encoders encoders;
 
 int8_t data[2];
 int8_t pos;
@@ -60,8 +74,13 @@ void drive(int8_t l_val, int8_t r_val) {
 }
 
 void accelerate(int8_t l_val, int8_t r_val){
+  if(emergancyStop) return;
+  if(abs(l_val-ideal_l_val)>25||abs(r_val-ideal_r_val)>25) {
+    for(auto val : prevEncoderVals) val = false;
+    lastSpeedChange = millis();
+  }
   ideal_r_val = r_val;
-  ideal_l_val = l_val;
+  ideal_l_val = l_val;  
 }
 
 void setup() {
@@ -78,7 +97,48 @@ void setup() {
 }
 
 void loop() {
-  if((millis()-prevAccMillis)>(1000/accPerSec)) {
+
+  if(prevEncoderVals[0]&&prevEncoderVals[1]&&prevEncoderVals[2])
+    emergancyStop = true;
+  else
+    emergancyStop = false;
+
+  if((millis()-prevStallMillis)>(1000/stallPerSec)&&(millis()-lastSpeedChange)>(1000/speedChangePerSec)) {
+
+    encoderValLeft = sqrt(pow(encoders.getCountsAndResetLeft(),2));
+    encoderValRight = sqrt(pow(encoders.getCountsAndResetRight(),2));
+
+    stallThresholdLeft = ((2*abs(actual_l_val)-150)+abs(2*abs(actual_l_val)-150))/2+100;
+    stallThresholdRight = ((2*abs(actual_r_val)-150)+abs(2*abs(actual_r_val)-150))/2+100;
+
+    prevEncoderVals[2] = prevEncoderVals[1];
+    prevEncoderVals[1] = prevEncoderVals[0];
+    
+    if((encoderValLeft<stallThresholdLeft&&actual_l_val&&ideal_l_val)
+      ||(encoderValRight<stallThresholdRight&&actual_r_val&&ideal_r_val))
+      prevEncoderVals[0] = true;
+    else
+      prevEncoderVals[0] = false;
+
+
+    Serial.print(encoderValLeft);
+    Serial.print("  ");
+    Serial.print(stallThresholdLeft);
+    Serial.print("  ");
+    Serial.print(encoderValRight);
+    Serial.print("  ");
+    Serial.print(stallThresholdRight);
+    Serial.print("  ");
+    Serial.print(prevEncoderVals[0]);
+    Serial.print("  ");
+    Serial.print(prevEncoderVals[1]);
+    Serial.print("  ");
+    Serial.println(prevEncoderVals[2]);  
+
+    prevStallMillis = millis();
+  }
+
+  if((millis()-prevAccMillis)>(1000/accPerSec)&&!emergancyStop) {
 
     if(actual_l_val < ideal_l_val) {
       actual_l_val += acc_const;
@@ -104,6 +164,9 @@ void loop() {
     drive(actual_l_val, actual_r_val);
 
     prevAccMillis = millis();
+    
+  } else if(emergancyStop) {
+    drive(0,0);
   }
 
   if(Serial1.available()) {
@@ -157,7 +220,7 @@ void loop() {
     Serial1.write(leftValue+rightValue);
 
     //pos = (int8_t)((lineSensors.readLine(lineSensorValues)/20)-100); //svart linje
-    pos = (int8_t)((lineSensors.readLine(lineSensorValues,QTR_EMITTERS_ON,1)/20)-100);
+    pos = (int8_t)((lineSensors.readLine(lineSensorValues,QTR_EMITTERS_ON,0)/20)-100);
     //Serial.println(pos);
     Serial1.write(pos);
 
