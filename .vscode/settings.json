@@ -2,6 +2,8 @@
     "files.associations": {
         "complex": "cpp",
         "cmath": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "istream": "cpp",
+        "*.tcc": "cpp"
     }
 }

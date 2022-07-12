@@ -13,12 +13,13 @@ int actual_r_val = 0;
 int ideal_l_val = 0;
 int ideal_r_val = 0;
 
-int acc_const = 25;
-int accPerSec = 200;
+int acc_const = 50;
+int accPerSec = 100;
 unsigned long prevAccMillis = 0;
 
-int maxSpeed = 175;
+int maxSpeed = 190;
 bool isCalibrated = false;
+bool lineColor = false;
 
 int encoderValLeft, encoderValRight;
 float stallThresholdLeft = 100;
@@ -26,6 +27,8 @@ float stallThresholdRight = 100;
 
 bool prevEncoderVals[3] = {0,0,0};
 bool emergancyStop = false;
+unsigned long lastStop = 0;
+int stopDuration = 2;
 
 const int lineSensorValues[5] = {0,0,0,0,0};
 
@@ -35,7 +38,7 @@ unsigned long lastSpeedChange = 0;
 int speedChangePerSec = 2;
 
 unsigned long prevReadMillis = 0;
-int readPerSec = 25; //må være mindre enn 71, da hver read tar 13-14ms
+int readPerSec = 20; //må være mindre enn 71, da hver read tar 13-14ms
 
 unsigned long prevStallMillis = 0;
 int stallPerSec = 4;
@@ -74,7 +77,6 @@ void drive(int8_t l_val, int8_t r_val) {
 }
 
 void accelerate(int8_t l_val, int8_t r_val){
-  if(emergancyStop) return;
   if(abs(l_val-ideal_l_val)>25||abs(r_val-ideal_r_val)>25) {
     for(auto val : prevEncoderVals) val = false;
     lastSpeedChange = millis();
@@ -98,12 +100,51 @@ void setup() {
 
 void loop() {
 
-  if(prevEncoderVals[0]&&prevEncoderVals[1]&&prevEncoderVals[2])
+  if(prevEncoderVals[0]&&prevEncoderVals[1]&&prevEncoderVals[2]&&!emergancyStop) {
+    Serial.println("Emergancystop on!");
     emergancyStop = true;
-  else
-    emergancyStop = false;
+    lastStop = millis();
+    lastSpeedChange = millis();
+    drive(0,0);
+  }
 
-  if((millis()-prevStallMillis)>(1000/stallPerSec)&&(millis()-lastSpeedChange)>(1000/speedChangePerSec)) {
+  if(emergancyStop&&(millis()-lastStop)>(1000*stopDuration)) {
+    Serial.println("Emergancystop off!");
+    emergancyStop = false;
+    for(auto val : prevEncoderVals) val = false;
+  }
+
+  if((millis()-prevAccMillis)>(1000/accPerSec)&&!emergancyStop) {
+
+    if(actual_l_val < ideal_l_val) 
+      actual_l_val += acc_const;
+    
+    if(actual_r_val < ideal_r_val) 
+      actual_r_val += acc_const;
+    
+    if(actual_l_val > ideal_l_val) 
+      actual_l_val -= acc_const;
+    
+    if(actual_r_val > ideal_r_val) 
+      actual_r_val -= acc_const;
+    
+
+    if(abs(actual_r_val - ideal_r_val) <= acc_const) 
+      actual_r_val = ideal_r_val;
+    
+    if(abs(actual_l_val - ideal_l_val) <= acc_const) 
+      actual_l_val = ideal_l_val;
+    
+
+    drive(actual_l_val, actual_r_val);
+
+    prevAccMillis = millis();
+    
+  } else if(emergancyStop) {
+    drive(0,0);
+  }
+
+  if((millis()-prevStallMillis)>(1000/stallPerSec)&&(millis()-lastSpeedChange)>(1000/speedChangePerSec)&&!emergancyStop) {
 
     encoderValLeft = sqrt(pow(encoders.getCountsAndResetLeft(),2));
     encoderValRight = sqrt(pow(encoders.getCountsAndResetRight(),2));
@@ -119,7 +160,6 @@ void loop() {
       prevEncoderVals[0] = true;
     else
       prevEncoderVals[0] = false;
-
 
     Serial.print(encoderValLeft);
     Serial.print("  ");
@@ -138,52 +178,14 @@ void loop() {
     prevStallMillis = millis();
   }
 
-  if((millis()-prevAccMillis)>(1000/accPerSec)&&!emergancyStop) {
-
-    if(actual_l_val < ideal_l_val) {
-      actual_l_val += acc_const;
-    }
-    if(actual_r_val < ideal_r_val) {
-      actual_r_val += acc_const;
-    }
-
-    if(actual_l_val > ideal_l_val) {
-      actual_l_val -= acc_const;
-    }
-    if(actual_r_val > ideal_r_val) {
-      actual_r_val -= acc_const;
-    }
-
-    if(abs(actual_r_val - ideal_r_val) <= acc_const) {
-      actual_r_val = ideal_r_val;
-    }
-    if(abs(actual_l_val - ideal_l_val) <= acc_const) {
-      actual_l_val = ideal_l_val;
-    }
-
-    drive(actual_l_val, actual_r_val);
-
-    prevAccMillis = millis();
-    
-  } else if(emergancyStop) {
-    drive(0,0);
-  }
-
   if(Serial1.available()) {
     char received = (char)Serial1.read();
     //Serial.print("recieved command: ");
     //Serial.println(received); //Print data to Serial Monitor
 
     switch(received) {
-      case 'c': //kalibrer linjefølger
-        Serial.println('c');
-        if(!isCalibrated) {
-          calibrateLineSensors();
-          isCalibrated = true;
-        }
-        break;
-
       case 'k': //Kjør!
+        //Serial.println('k');
         while(Serial1.available() < 2){
           delayMicroseconds(microSecPerByte);
         }
@@ -195,7 +197,28 @@ void loop() {
           }
         }
 
+        // Serial.print(data[0]);
+        // Serial.print("  ");
+        // Serial.println(data[1]);
         accelerate(data[0], data[1]);
+        break;
+
+      case 'c': //kalibrer linjefølger
+        //Serial.println('c');
+        lineColor = false;
+        if(!isCalibrated) {
+          calibrateLineSensors();
+          isCalibrated = true;
+        }
+        break;
+
+      case 'C': //kalibrer linjefølger
+        //Serial.println('C');
+        lineColor = true;
+        if(!isCalibrated) {
+          calibrateLineSensors();
+          isCalibrated = true;
+        }
         break;
 
       default:
@@ -220,7 +243,7 @@ void loop() {
     Serial1.write(leftValue+rightValue);
 
     //pos = (int8_t)((lineSensors.readLine(lineSensorValues)/20)-100); //svart linje
-    pos = (int8_t)((lineSensors.readLine(lineSensorValues,QTR_EMITTERS_ON,0)/20)-100);
+    pos = (int8_t)((lineSensors.readLine(lineSensorValues,QTR_EMITTERS_ON,lineColor)/20)-100);
     //Serial.println(pos);
     Serial1.write(pos);
 

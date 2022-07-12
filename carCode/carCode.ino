@@ -1,9 +1,9 @@
 #include "Car.h"
 
-Car car("ruter_cot", "ESP_32_is_best");
+Car car("nettverksnavn", "nettverkspassord");
 
 void setup() {
-  car.initCar();
+  car.initCar(BLACK); //BLACK for svart linje og WHITE for hvit linje
 }
 
 //lag variabler her
